@@ -1,0 +1,192 @@
+% !TEX TS-program = pdflatex
+% !TEX encoding = UTF-8 Unicode
+
+\documentclass[11pt]{article} % use larger type; default would be 10pt
+\usepackage[utf8]{inputenc} % set input encoding (not needed with XeLaTeX)
+
+%%% PAGE DIMENSIONS
+\usepackage{geometry} % to change the page dimensions
+\geometry{a4paper} % or letterpaper (US) or a5paper or....
+% \geometry{margin=2in} % for example, change the margins to 2 inches all round
+% \geometry{landscape} % set up the page for landscape
+%   read geometry.pdf for detailed page layout information
+\usepackage{graphicx} % support the \includegraphics command and options
+\usepackage[parfill]{parskip} % Activate to begin paragraphs with an empty line rather than an indent
+
+%%% PACKAGES
+\usepackage{booktabs} % for much better looking tables
+\usepackage{array} % for better arrays (eg matrices) in maths
+\usepackage{paralist} % very flexible & customisable lists (eg. enumerate/itemize, etc.)
+\usepackage{verbatim} % adds environment for commenting out blocks of text & for better verbatim
+\usepackage{subfig} % make it possible to include more than one captioned figure/table in a single float
+\usepackage{amsmath}
+\usepackage{fancyref}
+
+%%% HEADERS & FOOTERS
+\usepackage{fancyhdr} % This should be set AFTER setting up the page geometry
+\pagestyle{fancy} % options: empty , plain , fancy
+\renewcommand{\headrulewidth}{0pt} % customise the layout...
+\lhead{}\chead{}\rhead{}
+\lfoot{}\cfoot{\thepage}\rfoot{}
+
+%%% SECTION TITLE APPEARANCE
+\usepackage{sectsty}
+\allsectionsfont{\sffamily\mdseries\upshape} % (See the fntguide.pdf for font help)
+% (This matches ConTeXt defaults)
+
+%%% ToC (table of contents) APPEARANCE
+\usepackage[nottoc,notlof,notlot]{tocbibind} % Put the bibliography in the ToC
+\usepackage[titles,subfigure]{tocloft} % Alter the style of the Table of Contents
+\renewcommand{\cftsecfont}{\rmfamily\mdseries\upshape}
+\renewcommand{\cftsecpagefont}{\rmfamily\mdseries\upshape} % No bold!
+
+%%% SIMPLIFIED COMMANDS:
+\newcommand{\dun}{\frac{\partial u}{\partial n}}
+\newcommand{\bn}{\mathbf{n}}
+\newcommand{\bi}{\mathbf{i}}
+\newcommand{\bj}{\mathbf{j}}
+\newcommand{\Dx}{\Delta x}
+\newcommand{\Dy}{\Delta y}
+\newcommand{\Dt}{\Delta t}
+\newcommand{\dutt}{\frac{\partial^2u}{\partial^2t}}
+\newcommand{\dut}{\frac{\partial u}{\partial t}}
+\newcommand{\dux}{\frac{\partial u}{\partial x}}
+\newcommand{\duy}{\frac{\partial u}{\partial y}}
+\newcommand{\dx}{\frac{\partial}{\partial x}}
+\newcommand{\dy}{\frac{\partial}{\partial y}}
+\newcommand{\unp}{u^{n+1}}
+\newcommand{\un}{u^{n}}
+\newcommand{\unm}{u^{n-1}}
+\newcommand{\half}{\frac{1}{2}}
+
+\title{Wave Equation}
+\author{The Author}
+%\date{} % Activate to display a given date or no date (if empty),
+         % otherwise the current date is printed 
+
+\begin{document}
+\maketitle
+
+\section*{Discretization}
+We want to solve the equation
+\begin{equation}
+\dutt + b\dut = \dx\left(q(x,y) \dux\right) + \dy\left(q(x,y) \duy\right)
+\label{wave_eq}
+\end{equation}
+
+\subsection*{The general scheme for interior points}
+
+We use a set of approximations for the derivatives in \eqref{wave_eq}. For the second-order derivative, we use the approximation:
+\begin{equation*}
+\dutt \approx \frac{\unp_{i,i} - 2\un_{i,j} + \unm_{i,j}}{\Dt^2}
+\end{equation*}
+For the first-ordere derivative, we use the centered difference approximation:
+\begin{equation*}
+\dut \approx \frac{\unp_{i,i} - \unm_{i,j}}{2\Dt}
+\end{equation*}
+For the terms on the right-hand side of the equations, we want to evaluate the outer derivative first. We define 
+\[\phi_x = q(x,y)\dux, \,\,\,\phi_y = q(x,y)\duy \]
+We will adress $\phi_x$ as an example; the same process is applied to $\phi_x$. We use a centered difference approximation for the derivative of $\phi_x$. For simplicitys sake, we let $\phi =\phi_x$:
+\begin{equation*}
+\left[\frac{\partial\phi}{\partial x}\right]^n_{i,j} \approx \frac{\phi_{i+\half,j} - \phi_{i-\half,j}}{\Dx}
+\end{equation*}
+We then discretize $\phi_{i+\half,j}$ and $\phi_{i-\half,j}$:
+\begin{align*}
+\phi_{i+\half,j} &= q_{i+\half,j}\left[\dux\right]^n_{i+\half,j} \approx  q_{i+\half,j}\frac{\un_{i+1,j}-\un_{i,j}}{\Dx} \\
+\phi_{i-\half,j} &= q_{i-\half,j}\left[\dux\right]^n_{i-\half,j} \approx  q_{i-\half,j}\frac{\un_{i,j}-\un_{i-1,j}}{\Dx} 
+\end{align*}
+We now combine these two to get
+\begin{equation}
+\left[\dx\left(q(x,y) \dux\right)\right]^n_{i,j} \approx \frac{1}{\Dx^2}\left(q_{i+\half,j}(\un_{i+1,j}-\un_{i,j}) - q_{i-\half,j}(\un_{i,j}-\un_{i-1,j})\right)
+\end{equation}
+The corresponding appoximation for $\phi_y$ gives
+\begin{equation}
+\left[\dy\left(q(x,y) \duy\right)\right]^n_{i,j} \approx \frac{1}{\Dy^2}\left(q_{i,j+\half}(\un_{i,j+1}-\un_{i,j}) - q_{i,j-\half}(\un_{i,j}-\un_{i,j-1})\right)
+\end{equation}
+Next, we need to be able to compute the coefficient $q$ between the mesh points. To do this, we use the arithmetic average:
+\begin{align*}
+q_{i+\half,j} &= \half(q_{i,j} + q_{i+1,j}) = [\bar{q}^x]_{i,j}\\
+q_{i,j+\half} &= \half(q_{i,j} + q_{i,j+1}) = [\bar{q}^y]_{i,j}
+\end{align*}
+
+We can now write the discrete equations compactly using operator notation. The equation becomes:
+\begin{equation}
+\left[D_tD_tu + bD_tu = D_x\bar{q}^xD_xu + D_y\bar{q}^yD_yu + f\right]^n_{i,j}
+\end{equation}
+
+Solving this with respect to $\unp_{i,j}$ gives us the general computational scheme for the inner points:
+
+\begin{align}
+\unp_{i,j} = &2\un_{i,j} - \unm_{i,j} \\
+&\frac{\Dt^2}{\Dx^2}\left(\half(q_{i,j} + q_{i+1,j})(\un_{i+1,j}-\un_{i,j}) - \half(q_{i-1,j} + q_{i,j})(\un_{i,j}-\un_{i-1,j})\right) + \\
+&\frac{\Dt^2}{\Dy^2}\left(\half(q_{i,j} + q_{i,j+1})(\un_{i,j+1}-\un_{i,j}) - \half(q_{i,j-1} + q_{i,j})(\un_{i,j}-\un_{i,j-1})\right) +\\
+&f(x_i, y_j, t_n)
+\end{align}
+\textbf{GLEMT Å TA MED DEMPING - KOMPONENTEN!}
+
+This scheme requires the current and previous time steps in order to compute the next time step. 
+
+\subsection*{Initial conditions}
+The equation \eqref{wave_eq} has two initial conditions:
+\begin{align*}
+u(x,y,0) &= I(x,y)\\
+u_t(x,y,0) &= V(x,y)
+\end{align*}
+The first IC is used to set $u^0_{i,j}$ for all inner points, i.e.
+\[u^0_{i,j} = I(x_i,y_j)\] for 
+
+
+\subsection*{Boundary conditions}
+We have the Neumann boundary condition
+\begin{equation*}
+\dun = \bn \cdot \nabla u
+\end{equation*}
+
+\subsubsection*{ $x=0$, $y = y_j$, $t = t_n$:}
+ We have that $\bn = \bi$. Discretizing the boundary condition using a centered difference at this boundary gives
+\begin{equation*}
+\frac{u^n_{-1,j} - u^n_{1,j}}{2\Dx} = 0
+\end{equation*}
+We can use this to express the ficticious value $u^n_{-1,j}$ (which is outside the mesh):
+\begin{equation}
+u^n_{-1,j} = u^n_{1,j}
+\label{bc_x0}
+\end{equation}
+
+\subsubsection*{ $x=L_x$, $y = y_j$, $t = t_n$:}
+ We have that $\bn = -\bi$. Discretizing the boundary condition using a centered difference at this boundary gives
+\begin{equation*}
+-\frac{u^n_{L_x-1,j} - u^n_{L_x+1,j}}{2\Dx} = 0
+\end{equation*}
+We can use this to express the ficticious value $u^n_{L_x+1,j}$ (which is outside the mesh):
+\begin{equation}
+u^n_{L_x+1,j} = u^n_{L_x-1,j}
+\label{bc_xL}
+\end{equation}
+
+\subsubsection*{ $x=x_i$, $y = 0$, $t = t_n$:}
+ We have that $\bn = \bj$. Discretizing the boundary condition using a centered difference at this boundary gives
+\begin{equation*}
+\frac{u^n_{i,-1} - u^n_{i,1}}{2\Dy} = 0
+\end{equation*}
+We can use this to express the ficticious value $u^n_{i,-1}$ (which is outside the mesh):
+\begin{equation}
+u^n_{i,-1} = u^n_{i,1}
+\label{bc_y0}
+\end{equation}
+
+\subsubsection*{ $x=x_i$, $y = L_y$, $t = t_n$:}
+ We have that $\bn = -\bj$. Discretizing the boundary condition using a centered difference at this boundary gives
+\begin{equation*}
+-\frac{u^n_{i,L_y-1} - u^n_{i,L_y+1}}{2\Dy} = 0
+\end{equation*}
+We can use this to express the ficticious value $u^n_{i,L_y+1}$ (which is outside the mesh):
+\begin{equation}
+u^n_{i,L_y+1} = u^n_{i,L_y-1}
+\label{bc_yL}
+\end{equation}
+
+
+By using \eqref{bc_x0}, \eqref{bc_xL}, \eqref{bc_y0} and \eqref{bc_yL} in the discretized scheme, we have a modified scheme at the boundary points.
+
+\end{document}
