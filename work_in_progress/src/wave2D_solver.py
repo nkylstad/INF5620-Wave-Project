@@ -9,8 +9,8 @@ def solver(I, V, q, f, Lx, Ly, Nx, Ny, c, dt, T, b, version, make_plot=True):
     
     x = linspace(0,Lx,Nx+1)  # mesh points in x-direction
     y = linspace(0,Ly,Ny+1)  # mesh points in y-direction
-    xv = x.reshape((x.size, 1))
-    yv = y.reshape((x.size, 1))
+    xv = x[:,newaxis] # for vectorized function evaluations
+    yv = y[newaxis,:]
     dx = x[0] - x[1]
     dy = y[0] - y[1]
     
@@ -54,27 +54,26 @@ def solver(I, V, q, f, Lx, Ly, Nx, Ny, c, dt, T, b, version, make_plot=True):
             if j == Ny: spy = j-1; 
             else: spy = j+1
             
-            up[i][j] = c1*(2*u[i][j] - c2*(u[i][j] - dt*V(x[i],y[j])) + 0.5*Cx2*((q(x[i],y[j]) + q(x[spx],y[j]))*\
-            (u[spx][j] - u[i][j]) - (q(x[smx],y[j]) + q(x[i],y[j]))*(u[i][j] - u[smx][j])) + \
-            0.5*Cy2*((q(x[i],y[j]) + q(x[i],y[spy]))*(u[i][spy] - u[i][j]) - (q(x[i],y[j]) + q(x[i],y[smy]))*\
-            (u[i][j] - u[i][smy])) + dt2*f(x[i],y[j],t[0])[i,j])
+            up[i,j] = c1*(2*u[i,j] - c2*(u[i,j] - dt*V(x[i],y[j])) + 0.5*Cx2*((q[i,j] + q[spx,j])*\
+            (u[spx,j] - u[i,j]) - (q[smx,j] + q[i,j])*(u[i,j] - u[smx,j])) + \
+            0.5*Cy2*((q[i,j] + q[i,spy])*(u[i,spy] - u[i,j]) - (q[i,j] + q[i,smy])*\
+            (u[i,j] - u[i,smy]))) #+ dt2*f(x[i],y[j],t[0])[i,j])
             
     # update arrays one timestep:
     um = u
     u = up
+    
     for n in range(1, N+1):
         if version == "scalar":
             up, u, um = advance_scalar(Nx, Ny, x, y, t[n], up, u, um, c1, c2, Cx2, Cy2, dt2, q, f)
         else:
-            qv = q(xv,yv)
-            fv = f(xv,yv,t)
-            up, u, um = advance_vectorized(Nx, Ny, x, y, up, u, um, c1, c2, Cx2, Cy2, dt2, qv, fv)
+            up, u, um = advance_vectorized(Nx, Ny, x, y, up, u, um, c1, c2, Cx2, Cy2, dt2, q, f)
         if make_plot:
-            plot_3D(x,y,u)
+            plot_3D(x,y,u,t[n])
     t1 = time.clock()
     print "Finished! Used %g seconds" % (t1-t0)
         
-    return True
+    return dt
     
 def advance_scalar(Nx, Ny, x, y, t, up, u, um, c1, c2, Cx2, Cy2, dt2, q, f):
     for i in range(Nx+1):
@@ -88,23 +87,25 @@ def advance_scalar(Nx, Ny, x, y, t, up, u, um, c1, c2, Cx2, Cy2, dt2, q, f):
             else: smy = j-1
             if j == Ny: spy = j-1; 
             else: spy = j+1
-            up[i][j] = c1*(2*u[i][j] - c2*um[i][j] + 0.5*Cx2*((q(x[i],y[j]) + q(x[spx],y[j]))*\
-            (u[spx][j] - u[i][j]) - (q(x[smx],y[j]) + q(x[i],y[j]))*(u[i][j] - u[smx][j])) + \
-            0.5*Cy2*((q(x[i],y[j]) + q(x[i],y[spy]))*(u[i][spy] - u[i][j]) - (q(x[i],y[j]) + q(x[i],y[smy]))*\
-            (u[i][j] - u[i][smy])) + dt2*f(x[i],y[j],t))
+            up[i,j] = c1*(2*u[i,j] - c2*um[i,j] + 0.5*Cx2*((q[i,j] + q[spx,j])*\
+            (u[spx,j] - u[i,j]) - (q[smx,j] + q[i,j])*(u[i,j] - u[smx,j])) + \
+            0.5*Cy2*((q[i,j] + q[i,spy])*(u[i,spy] - u[i,j]) - (q[i,j] + q[i,smy])*\
+            (u[i,j] - u[i,smy]))) #+ dt2*f(x[i],y[j],t))
 
     um = u
     u = up
     return up, u, um
 
 def advance_vectorized(Nx, Ny, x, y, up, u, um, c1, c2, Cx2, Cy2, dt2, q, f):
+    print q.size
+    print u.size
     
     up[1:-1,1:-1] = c1*(2*u[1:-1,1:-1] - c2*um[1:-1,1:-1] + \
-        0.5*Cx2*((q[:-2] + q[1:-1])*(u[:-2,1:-1] - 2*um[1:-1,1:-1]) -\
-         (q[1:-1] + q[2:])*(u[1:-1,1:-1] - 2*um[2:,1:-1])) + \
-         0.5*Cy2*((q[:-2] + q[1:-1])*(u[1:-1,:-2] - 2*um[1:-1,1:-1]) -\
-         (q[1:-1] + q[2:])*(u[1:-1,1:-1] - 2*um[1:-1,2:])) + \
-         dt2*f[1:-1,1:-1])
+        0.5*Cx2*((q[:-2,1:-1] + q[1:-1,1:-1])*(u[:-2,1:-1] - 2*um[1:-1,1:-1]) -\
+         (q[1:-1,1:-1] + q[2:,1:-1])*(u[1:-1,1:-1] - 2*um[2:,1:-1])) + \
+         0.5*Cy2*((q[1:-1,:-2] + q[1:-1,1:-1])*(u[1:-1,:-2] - 2*um[1:-1,1:-1]) -\
+         (q[1:-1,1:-1] + q[1:-1,2:])*(u[1:-1,1:-1] - 2*um[1:-1,2:]))) # + \
+         #dt2*f[1:-1,1:-1])
     
     #Boundary conditions:
     up[0,1:-1] = up[1,1:-1]
@@ -116,14 +117,15 @@ def advance_vectorized(Nx, Ny, x, y, up, u, um, c1, c2, Cx2, Cy2, dt2, q, f):
     u = up.copy()
     return um, u, up
 
-def plot_3D(x, y, u):
+def plot_3D(x, y, u,t):
     surfc(x,y,u)
+    title('t=%g' %t)
 
 def run_Gaussian():
     dt = -1
-    Nx = 100
-    Ny = 100
-    T = 10
+    Nx = 50
+    Ny = 50
+    T = 4
     Lx = 10
     Ly = 10
     c = 1.0
@@ -137,8 +139,8 @@ def run_Gaussian():
     def V(x,y):
         return 0
     
-    def q(x,y):
-        return 1*x + 1*y
+    q = ones((Nx+1,Ny+1))
+    q = 0.8*q
     
     if version == "scalar":
         def f(x,y,t):
@@ -147,7 +149,8 @@ def run_Gaussian():
         def f(x,y,t):
             return zeros((Nx+1,Ny+1))
     
-    solver(I, V, q, f, Lx, Ly, Nx, Ny, c, dt, T, b, version, make_plot=True)
+    dt = solver(I, V, q, f, Lx, Ly, Nx, Ny, c, dt, T, b, version, make_plot=True)
+    print "dt: ", dt
     
 
 run_Gaussian()
