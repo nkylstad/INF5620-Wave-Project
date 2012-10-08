@@ -107,13 +107,13 @@ def advance_vectorized(Nx, Ny, x, y, up, u, um, c1, c2, Cx2, Cy2, dt2, q, f):
          dt2*f[1:-1,1:-1])
     
     #Boundary conditions:
-    up[0,:] = 0
-    up[Nx,:] = 0
-    up[:,Ny] = 0
-    up[:,0] = 0
+    up[0,1:-1] = up[1,1:-1]
+    up[-1,1:-1] = up[-2,1:-1]
+    up[1:-1,-1] = up[1:-1,-2]
+    up[1:-1,0] = up[1:-1, 1]
     
-    um = u
-    u = up
+    um = u.copy()
+    u = up.copy()
     return um, u, up
 
 def plot_3D(x, y, u):
