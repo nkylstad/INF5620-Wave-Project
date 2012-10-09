@@ -1,7 +1,8 @@
 from numpy import *
 import sys
-from scitools.easyviz import *
+#from scitools.easyviz import *
 import time
+from mayavi import mlab
 #from matplotlib.pyplot import *
 
 
@@ -66,10 +67,12 @@ def solver(I, V, q, f, Lx, Ly, Nx, Ny, c, dt, T, b, version, make_plot=True):
     for n in range(1, N+1):
         if version == "scalar":
             up, u, um = advance_scalar(Nx, Ny, x, y, t[n], up, u, um, c1, c2, Cx2, Cy2, dt2, q, f)
+            if make_plot:
+		plot_3D(x,y,u,t[n])
         else:
             up, u, um = advance_vectorized(Nx, Ny, x, y, up, u, um, c1, c2, Cx2, Cy2, dt2, q, f)
-        if make_plot:
-            plot_3D(x,y,u,t[n])
+	    if make_plot:
+		plot_3D(xv,yv,u,t[n])
     t1 = time.clock()
     print "Finished! Used %g seconds" % (t1-t0)
         
@@ -97,8 +100,6 @@ def advance_scalar(Nx, Ny, x, y, t, up, u, um, c1, c2, Cx2, Cy2, dt2, q, f):
     return up, u, um
 
 def advance_vectorized(Nx, Ny, x, y, up, u, um, c1, c2, Cx2, Cy2, dt2, q, f):
-    print q.size
-    print u.size
     
     up[1:-1,1:-1] = c1*(2*u[1:-1,1:-1] - c2*um[1:-1,1:-1] + \
         0.5*Cx2*((q[:-2,1:-1] + q[1:-1,1:-1])*(u[:-2,1:-1] - 2*um[1:-1,1:-1]) -\
@@ -118,8 +119,8 @@ def advance_vectorized(Nx, Ny, x, y, up, u, um, c1, c2, Cx2, Cy2, dt2, q, f):
     return um, u, up
 
 def plot_3D(x, y, u,t):
-    surfc(x,y,u)
-    title('t=%g' %t)
+    mlab.surf(x,y,u)
+    mlab.title('t=%g' %t)
 
 def run_Gaussian():
     dt = -1
