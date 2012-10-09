@@ -55,14 +55,14 @@ def solver(I, V, q, f, Lx, Ly, Nx, Ny, c, dt, T, b, version, make_plot=True):
             if j == Ny: spy = j-1; 
             else: spy = j+1
             
-            up[i,j] = c1*(2*u[i,j] - c2*(u[i,j] - dt*V(x[i],y[j])) + 0.5*Cx2*((q[i,j] + q[spx,j])*\
+            up[i,j] = u[i,j] + dt*c2*V[i,j] + 0.5*Cx2*((q[i,j] + q[spx,j])*\
             (u[spx,j] - u[i,j]) - (q[smx,j] + q[i,j])*(u[i,j] - u[smx,j])) + \
             0.5*Cy2*((q[i,j] + q[i,spy])*(u[i,spy] - u[i,j]) - (q[i,j] + q[i,smy])*\
-            (u[i,j] - u[i,smy]))) #+ dt2*f(x[i],y[j],t[0])[i,j])
+            (u[i,j] - u[i,smy])) #+ 0.5*dt2*f(x[i],y[j],t[0])[i,j])
             
     # update arrays one timestep:
-    um = u
-    u = up
+    um = u.copy()
+    u = up.copy()
     
     for n in range(1, N+1):
         if version == "scalar":
@@ -100,20 +100,59 @@ def advance_scalar(Nx, Ny, x, y, t, up, u, um, c1, c2, Cx2, Cy2, dt2, q, f):
     return up, u, um
 
 def advance_vectorized(Nx, Ny, x, y, up, u, um, c1, c2, Cx2, Cy2, dt2, q, f):
-    
+  
     up[1:-1,1:-1] = c1*(2*u[1:-1,1:-1] - c2*um[1:-1,1:-1] + \
-        0.5*Cx2*((q[:-2,1:-1] + q[1:-1,1:-1])*(u[:-2,1:-1] - 2*um[1:-1,1:-1]) -\
-         (q[1:-1,1:-1] + q[2:,1:-1])*(u[1:-1,1:-1] - 2*um[2:,1:-1])) + \
-         0.5*Cy2*((q[1:-1,:-2] + q[1:-1,1:-1])*(u[1:-1,:-2] - 2*um[1:-1,1:-1]) -\
-         (q[1:-1,1:-1] + q[1:-1,2:])*(u[1:-1,1:-1] - 2*um[1:-1,2:]))) # + \
-         #dt2*f[1:-1,1:-1])
+	  0.5*Cx2*((q[1:-1,1:-1] + q[2:,1:-1])*(u[2:,1:-1]-u[1:-1,1:-1]) - \
+	  (q[1:-1,1:-1] + q[:-2,1:-1])*(u[1:-1,1:-1] - u[:-2,1:-1])) + \
+	  0.5*Cy2*((q[1:-1,1:-1] + q[1:-1,2:])*(u[1:-1,2:] - u[1:-1,1:-1]) - \
+	  (q[1:-1,1:-1] + q[1:-1,:-2])*(u[1:-1,1:-1] - u[1:-1,:-2])))
+	  
+    #boundary conditions:
+    # x = 0
+    up[0,1:-1] = c1*(2*u[0,1:-1] - c2*um[0,1:-1] + \
+	  0.5*Cx2*((q[0,1:-1] + q[1,1:-1])*(u[1,1:-1] - u[0,1:-1]) - \
+	  (q[0,1:-1] + q[1,1:-1])*(u[0,1:-1] - u[1,1:-1])) + \
+	  0.5*Cy2*((q[0,1:-1] + q[0,2:])*(u[0,2:] - u[0,1:-1]) - \
+	  (q[0,1:-1] + q[0,:-2])*(u[0,1:-1] - u[0,:-2])))
     
-    #Boundary conditions:
-    up[0,1:-1] = up[1,1:-1]
-    up[-1,1:-1] = up[-2,1:-1]
-    up[1:-1,-1] = up[1:-1,-2]
-    up[1:-1,0] = up[1:-1, 1]
+    # x = Lx
+    up[-1,1:-1] = c1*(2*u[-1,1:-1] - c2*um[-1,1:-1] + \
+	  0.5*Cx2*((q[-1,1:-1] + q[-2,1:-1])*(u[-2,1:-1] - u[-1,1:-1]) - \
+	  (q[-1,1:-1] + q[-2,1:-1])*(u[-1,1:-1] - u[-2,1:-1])) + \
+	  0.5*Cy2*((q[-1,1:-1] + q[-1,2:])*(u[-1,2:] - u[-1,1:-1]) - \
+	  (q[-1,1:-1] + q[-1,:-2])*(u[-1,1:-1] - u[-1,:-2])))
+
+    #y = 0
+    up[1:-1,0] = c1*(2*u[1:-1,0] - c2*um[1:-1,0] + \
+	  0.5*Cx2*((q[1:-1,0] + q[2:,0])*(u[2:,0] - u[1:-1,0]) - \
+	  (q[1:-1,0] + q[:-2,0])*(u[1:-1,0] - u[:-2,0])) + \
+	  0.5*Cy2*((q[1:-1,0] + q[1:-1,1])*(u[1:-1,1] - u[1:-1,0]) - \
+	  (q[1:-1,0] + q[1:-1,1])*(u[1:-1,0] - u[1:-1,1])))
+	  
+    #y = Ly
+    up[1:-1,-1] = c1*(2*u[1:-1,-1] - c2*um[1:-1,-1] + \
+	  0.5*Cx2*((q[1:-1,-1] + q[2:,-1])*(u[2:,-1] - u[1:-1,-1]) - \
+	  (q[1:-1,-1] + q[:-2,-1])*(u[1:-1,-1] - u[:-2,-1])) + \
+	  0.5*Cy2*((q[1:-1,-1] + q[1:-1,-2])*(u[1:-1,-2] - u[1:-1,-1]) - \
+	  (q[1:-1,-1] + q[1:-1,-2])*(u[1:-1,-1] - u[1:-1,-2])))
+	  
+    # Corners:
+    up[0,0] = c1*(2*u[0,0] - c2*um[0,0] + \
+            0.5*Cx2*((q[0,0] + q[1,0])*(u[1,0]-u[0,0]) - (q[0,0] + q[1,0])*(u[0,0] - u[1,0])) + \
+            0.5*Cx2*((q[0,0] + q[0,1])*(u[0,1]-u[0,0]) - (q[0,0] + q[0,1])*(u[0,0] - u[0,1])))
     
+    up[Nx,0] = c1*(2*u[Nx,0] - c2*um[Nx,0] + \
+            0.5*Cx2*((q[Nx-1,0] + q[Nx,0])*(u[Nx-1,0] -u [Nx,0]) - (q[Nx,0] + q[Nx-1,0])*(u[Nx,0] - u[Nx-1,0])) + \
+            0.5*Cx2*((q[Nx,0] + q[Nx,1])*(u[Nx,1]-u[Nx,0]) - (q[Nx,0] + q[Nx,1])*(u[Nx,0] - u[Nx,1])))
+   
+    up[0,Ny] = c1*(2*u[0,Ny] - c2*um[0,Ny] + \
+            0.5*Cx2*((q[0,Ny] + q[1,Ny])*(u[1,Ny] - u [0,Ny]) - (q[1,Ny] + q[0,Ny])*(u[0,Ny] - u[1,Ny])) + \
+            0.5*Cx2*((q[0,Ny] + q[0,Ny-1])*(u[0,Ny-1] - u[0,Ny]) - (q[0,Ny] + q[0,Ny-1])*(u[0,Ny] - u[0,Ny-1])))
+   
+    up[Nx,Ny] = c1*(2*u[Nx,Ny] - c2*um[Nx,Ny] + \
+            0.5*Cx2*((q[Nx,Ny] + q[Nx-1,Ny])*(u[Nx-1,Ny] - u [Nx,Ny]) - (q[Nx-1,Ny] + q[Nx,Ny])*(u[Nx,Ny] - u[Nx-1,Ny])) + \
+            0.5*Cx2*((q[Nx,Ny] + q[Nx,Ny-1])*(u[Nx,Ny-1] - u[Nx,Ny]) - (q[Nx,Ny] + q[Nx,Ny-1])*(u[Nx,Ny] - u[Nx,Ny-1])))
+            
     um = u.copy()
     u = up.copy()
     return um, u, up
@@ -121,24 +160,22 @@ def advance_vectorized(Nx, Ny, x, y, up, u, um, c1, c2, Cx2, Cy2, dt2, q, f):
 def plot_3D(x, y, u,t):
     mlab.surf(x,y,u)
     mlab.title('t=%g' %t)
+    mlab.warp_scale = "auto"
 
-def run_Gaussian():
+def run_Gaussian(version):
     dt = -1
     Nx = 50
     Ny = 50
     T = 4
-    Lx = 10
-    Ly = 10
-    c = 1.0
-    b = 1.0
-    version = "vectorized"
-    #version = "scalar"
+    Lx = 5
+    Ly = 5
+    c = 1.3
+    b = 0.1
     def I(x,y):
         """Gaussian peak at (Lx/2, Ly/2)."""
         return exp(-0.5*(x-Lx/2.0)**2 - 0.5*(y-Ly/2.0)**2)
-    
-    def V(x,y):
-        return 0
+    version = version
+    V = ones((Nx+1,Ny+1))
     
     q = ones((Nx+1,Ny+1))
     q = 0.8*q
@@ -154,7 +191,10 @@ def run_Gaussian():
     print "dt: ", dt
     
 
-run_Gaussian()
+    
+    
+run_Gaussian("vectorized")
+#run_Gaussian("scalar")
 print "No syntax errors. Yeey!"
 
    
