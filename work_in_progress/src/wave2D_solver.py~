@@ -15,6 +15,7 @@ def solver(I, V, q, f, Lx, Ly, Nx, Ny, c, dt, T, b, version, make_plot=True):
     X,Y = meshgrid(x,y)
     dx = x[1] - x[0]
     dy = y[1] - y[0]
+    print X.size
     
     stability_limit = (1/float(c))*(1/sqrt(1/dx**2 + 1/dy**2))
     if dt <= 0:
@@ -35,7 +36,7 @@ def solver(I, V, q, f, Lx, Ly, Nx, Ny, c, dt, T, b, version, make_plot=True):
     u = zeros((Nx+1, Ny+1))
     um = zeros((Nx+1, Ny+1))
     t0 = time.clock()
-    
+    s = mlab.mesh(X[1:-1,1:-1], Y[1:-1,1:-1], u[1:-1,1:-1])
     # Initial conditions
     if version == "scalar":
         for i in range(Nx+1):
@@ -69,7 +70,7 @@ def solver(I, V, q, f, Lx, Ly, Nx, Ny, c, dt, T, b, version, make_plot=True):
     # update arrays one timestep:
     #u = um.copy()
     #u = up.copy()
-    s = mlab.mesh(X[1:-1,1:-1], Y[1:-1,1:-1], u[1:-1,1:-1])
+    
     
     for n in range(2, N+1):
         if version == "scalar":
@@ -203,7 +204,7 @@ def run_Gaussian(version):
     V = ones((Nx+1,Ny+1))
     V = V*0.01
     q = ones((Nx+1,Ny+1))
-    q = 0.5*q
+    q = 0.3*q
     
     if version == "scalar":
         def f(x,y,t):
