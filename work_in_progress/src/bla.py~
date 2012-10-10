@@ -1,0 +1,16 @@
+from matplotlib import pyplot as plt
+from numpy import linspace, abs, zeros
+
+L = 10
+xc = L/2.
+sigma = L/20.
+def I(x):
+    return 0 if abs(x-xc) > sigma else 2
+    
+x = linspace(0,10,101)
+y = zeros(101)
+for i in range(101):
+    y[i] = I(x[i])
+
+plt.plot(x,y)
+show()

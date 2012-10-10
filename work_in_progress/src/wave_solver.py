@@ -1,23 +1,22 @@
 from numpy import *
-import math
+import math, os, subprocess, sys
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 from mayavi import mlab
 
-def solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version):
+def solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, oneD=False):
     
     x = linspace(0,Lx,Nx+1)
     y = linspace(0,Ly,Ny+1)
     X,Y = meshgrid(x,y)
-    dx = float(x[1] - x[0])
+    dx = float(x[1] - x[0]) 
     dy = float(y[1] - y[0])
-    
+   
     stability_limit = (1/float(c))*(1/sqrt(1/dx**2 + 1/dy**2))
     if dt <= 0:
         dt = 1*stability_limit
     elif dt < stability_limit:
         print "Error: dt too large."
-        
+
     N = int(round(float(T/dt)))
     t = linspace(0,T,N+1)
     c1 = 1/(1 + (b*dt)/2)
@@ -25,6 +24,12 @@ def solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version):
     Cx2 = (dt/dx)**2
     Cy2 = (dt/dy)**2
     dt2 = dt**2
+    
+    if oneD:
+        y = zeros(Ny+1)
+        dy = 1
+        Cy2 = 0
+        dt = dx/c
     
     u = zeros((Nx+1, Ny+1))  # The new soluion at the next timestep
     u_1 = zeros((Nx+1, Ny+1)) # The solution from the current time step
@@ -38,6 +43,9 @@ def solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version):
                 u_2[i,j] = I(x[i],y[j])
     else:  # vectorized version
         u_2[:,:] = I(X,Y)
+    #plt.figure()
+    #plt.plot(x,u_2)
+    #plt.show()
         
         
     # special scheme for the first step:
@@ -55,14 +63,15 @@ def solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version):
                 else: jp1 = j+1  # jp1 represents the index j+1
                 
                 u_1[i,j] = u_2[i,j] + dt*c2*V(x[i],y[j]) + \
-                            0.5*Cx2*((q[ip1,j] + q[i,j])*(u_2[ip1,j] - u_2[i,j]) - (q[i,j] + q[im1,j])*(u_2[i,j] - u_2[im1,j])) + \
-                            0.5*Cy2*((q[i,jp1] + q[i,j])*(u_2[i,jp1] - u_2[i,j]) - (q[i,j] + q[i,jm1])*(u_2[i,j] - u_2[i,jm1])) + \
-                            dt2*f(x[i],y[j],t[0])
+                            0.5**2*Cx2*((q[ip1,j] + q[i,j])*(u_2[ip1,j] - u_2[i,j]) - (q[i,j] + q[im1,j])*(u_2[i,j] - u_2[im1,j])) + \
+                            0.5**2*Cy2*((q[i,jp1] + q[i,j])*(u_2[i,jp1] - u_2[i,j]) - (q[i,j] + q[i,jm1])*(u_2[i,j] - u_2[i,jm1])) + \
+                            0.5*dt2*f(x[i],y[j],t[0])
                             
     else:  #vectorized version
         u_1[1:-1,1:-1] = u_2[1:-1,1:-1] + dt*c2*V[1:-1,1:-1] + \
-            0.5*Cx2*((q[2:,1:-1] + q[1:-1,1:-1])*(u_2[2:,1:-1] - u_2[1:-1,1:-1]) - (q[1:-1,1:-1] + q[:-2,1:-1])*(u_2[1:-1,1:-1] - u_2[:-2,1:-1])) + \
-            0.5*Cy2*((q[1:-1,2:] + q[1:-1,1:-1])*(u_2[1:-1,2:] - u_2[1:-1,1:-1]) - (q[1:-1,1:-1] + q[1:-1,:-2])*(u_2[1:-1,1:-1] - u_2[1:-1,:-2]))
+            0.5**2*Cx2*((q[2:,1:-1] + q[1:-1,1:-1])*(u_2[2:,1:-1] - u_2[1:-1,1:-1]) - (q[1:-1,1:-1] + q[:-2,1:-1])*(u_2[1:-1,1:-1] - u_2[:-2,1:-1])) + \
+            0.5**2*Cy2*((q[1:-1,2:] + q[1:-1,1:-1])*(u_2[1:-1,2:] - u_2[1:-1,1:-1]) - (q[1:-1,1:-1] + q[1:-1,:-2])*(u_2[1:-1,1:-1] - u_2[1:-1,:-2]))
+            # + 0.5*dt2*f(xkjbsdjkzcv)
             
         # boundary conditions:
         u_1[0,:] = u_1[1,:]
@@ -70,16 +79,20 @@ def solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version):
         u_1[:,0] = u_1[:,1]
         u_1[:,-1] = u_1[:,-2]
         
-   
+    plt.figure()
+    plt.plot(x,u_1)
+    plt.show()
     E = zeros(N+1)
 
     for n in range(2,N+1):
         
         if version == "scalar":
             u_1,u_2, E_val = advance_scalar(u, u_1, u_2, Nx, Ny, x, y, q, f, c1, c2, Cx2, Cy2, dt2, b, t[n], exact_manufactured_solution)
-            #plot_u(u_1, x, X, y, Y, t, n, 1)
-            #plot_3D(X,Y,u,s)
-            E[n] = E_val
+            #plt.figure()
+            #plt.plot(x,u_1)
+            #plt.show()
+            plt.clf()
+                 
         else:
             u_1,u_2 = advance_vectorized(u, u_1, u_2, q, f, c1, c2, Cx2, Cy2, t, exact_manufactured_solution)
             #plot_u(u_1, x, X, y, Y, t, n, 2)
@@ -134,6 +147,7 @@ def advance_vectorized(u, u_1, u_2, q, f, c1, c2, Cx2, Cy2, t, exact_manufacture
     u_2 = u_1.copy()
     u_1 = u.copy()
     return u_1, u_1
+    
     
 def plot_u(u, x, X, y, Y, t, n, plot_method):
     """if t[n] == 0:
@@ -224,8 +238,54 @@ def test_constant(version):
     
     u = solver(Lx,Ly,Nx,Ny,T,dt,c,I,q,V,f,b,version)
     print "Final solution!!!", u
+ 
+#test_constant("scalar")
+
+def plot_1D(u, x, fig, ax, n):
+    """
+    ax.cla()
+    ax.imshow(rand(5,5)interpolation="nearest")
+    fname = "tmp1D_%.4f.png" % n
+    return fname
+    """
+    plt.plot(x,u,'b')
+    plt.axis((x[0],x[-1],-0.5,3))
+    plt.xlabel('x')
+    plt.ylabel('u')
+    plt.title('1D plug wave', fontsize=20)
+
+    fname = "tmp1D_%.4f.png" % n 
+    return fname
+
     
-test_constant("vectorized")
+def test_1D_plug(version):
+    C = 1
+    Nx = 50
+    Ny = 50
+    Lx = 2
+    Ly = 2
+    T = 2
+    c = 1
+    b = 0
+    dt = 0.1
+    sigma = Lx/10.
+    xc = Lx/2.
     
+    q = ones((Nx+1,Ny+1))
+    
+    def V(x,y):
+        return 0
+    
+    def I(x,y):
+        return 0 if abs(x-xc) > sigma else 2
+        
+    def f(x,y,t):
+        return 0
+        
+    u = solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, oneD=True)
+    
+
+#test_constant_1D("scalar")    
+test_1D_plug("scalar")
 
     
