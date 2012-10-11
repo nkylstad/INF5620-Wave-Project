@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from mayavi import mlab
 import scitools.easyviz as sci
 
-def solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, oneD=False):
+def solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, h=0.4, oneD=False, standing=False):
     
     x = linspace(0,Lx,Nx+1)
     y = linspace(0,Ly,Ny+1)
@@ -15,16 +15,24 @@ def solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, oneD=False):
     stability_limit = (1/float(c))*(1/sqrt(1/dx**2 + 1/dy**2))
     if dt <= 0:
         dt = 1*stability_limit
-    elif dt < stability_limit:
+    elif dt > stability_limit:
         print "Error: dt too large."
     
     if oneD:
         y = zeros(Ny+1)
         dy = 1
-        Cy2 = 0
+        #Cy2 = 0
         dt = dx/c
         Y = meshgrid(y, y)
-        
+    
+    if standing:
+        Fx = 0.8
+        Fy = 0.8
+        Ft = 1/c *1/sqrt(1/Fx**2 + 1/Fy**2)
+        dx = Fx*h
+        dy = Fy*h
+        dt = Ft*h
+    
     N = int(round(float(T/dt)))
     t = linspace(0,T,N+1)
     c1 = 1/(1 + (b*dt)/2)
@@ -32,6 +40,9 @@ def solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, oneD=False):
     Cx2 = (dt/dx)**2
     Cy2 = (dt/dy)**2
     dt2 = dt**2
+    
+    if oneD:
+        Cy2 = 0
     
     u = zeros((Nx+1, Ny+1))  # The new soluion at the next timestep
     u_1 = zeros((Nx+1, Ny+1)) # The solution from the current time step
@@ -46,10 +57,10 @@ def solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, oneD=False):
     else:  # vectorized version
         u_2[:,:] = I(X,Y)
         
-    plt.plot(x,u_2)
-    plt.axis((x[0],x[-1],-0.2,2.2))
-    plt.savefig("tmp_%.4d.png" % 0)
-    plt.clf()
+    #plt.plot(x,u_2)
+    #plt.axis((x[0],x[-1],-0.2,2.2))
+    #plt.savefig("tmp_%.4d.png" % 0)
+    #plt.clf()
         
         
     # special scheme for the first step:
@@ -83,38 +94,45 @@ def solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, oneD=False):
         u_1[:,0] = u_1[:,1]
         u_1[:,-1] = u_1[:,-2]
         
-    plt.plot(x,u_1)
-    plt.axis((x[0],x[-1],-0.2,2.2))
-    plt.savefig("tmp_%.4d.png" % 1)
-    plt.clf()
-    E = zeros(N+1)
+    #plt.plot(x,u_1)
+    #plt.axis((x[0],x[-1],-0.2,2.2))
+    #plt.savefig("tmp_%.4d.png" % 1)
+    #plt.clf()
+    E = 0
+    E_val = -1
 
     for n in range(2,N+1):
-        
         if version == "scalar":
-            u_1,u_2, E_val = advance_scalar(u, u_1, u_2, Nx, Ny, x, y, q, f, c1, c2, Cx2, Cy2, dt2, b, t[n], exact_manufactured_solution)
+            u_1,u_2, E_val = advance_scalar(u, u_1, u_2, Nx, Ny, x, y, q, f, c1, c2, Cx2, Cy2, dt2, b, h, t[n], exact_manufactured_solution)
             #plt.figure()
-            plt.plot(x,u_1)
-            plt.show()
-            plt.clf()
+            #plt.plot(x,u_1)
+            #plt.show()
+            #plt.clf()
                  
         else:
             u_1,u_2 = advance_vectorized(u, u_1, u_2, q, f, c1, c2, Cx2, Cy2, t, exact_manufactured_solution)
             #plt.figure()
             
-            plt.plot(x,u_1)
-            plt.axis((x[0],x[-1],-0.2,2.2))
-            plt.savefig("tmp_%.4d.png" % n)
-            plt.show()
-            plt.clf()
+            #plt.plot(x,u_1)
+            #plt.axis((x[0],x[-1],-0.2,2.2))
+            #plt.savefig("tmp_%.4d.png" % n)
+            #plt.show()
+            #plt.clf()
             #plot_u(u_1, x, X, y, Y, t, n, 2)
-    sci.movie("tmp_*.png")
-    for i in glob.glob("tmp_*.png"):
-        os.remove(i)
-    return u_1       
+        
+        if E < E_val:
+            E = E_val
+        
+    #sci.movie("tmp_*.png")
+    #for i in glob.glob("tmp_*.png"):
+        #os.remove(i)
+    print "dt", dt 
+    print "E: ", E
+    print "E=dt^2+dx^2+dy^2:", dt**2+dx**2+dy**2
+    return E     
          
          
-def advance_scalar(u, u_1, u_2, Nx, Ny, x, y, q, f, c1, c2, Cx2, Cy2, dt2, b, tn, exact):
+def advance_scalar(u, u_1, u_2, Nx, Ny, x, y, q, f, c1, c2, Cx2, Cy2, dt2, b, h, tn, exact):
     error = 0
     for i in range(0,Nx+1):
         for j in range(0,Ny+1):
@@ -134,15 +152,14 @@ def advance_scalar(u, u_1, u_2, Nx, Ny, x, y, q, f, c1, c2, Cx2, Cy2, dt2, b, tn
                 dt2*f(x[i],y[j],tn))
                 
             u_exact = exact(x[i],y[j],b,tn)
-            temp = abs(u_exact - u[i,j])
-            if temp > error:
-                error = temp
+            error = u_exact - u
             
-    E_val = error
+    E_val = sqrt(dt*sum(error**2))
+    print "E_val:", E_val
                 
     u_2 = u_1.copy()
     u_1 = u.copy()
-    return u_1, u_2 , E_val
+    return u_1, u_2, E_val
     
 def advance_vectorized(u, u_1, u_2, q, f, c1, c2, Cx2, Cy2, t, exact_manufactured_solution):
     u[1:-1,1:-1] = c1*(2*u_1[1:-1,1:-1] - c2*u_2[1:-1,1:-1] + \
@@ -207,13 +224,12 @@ def exact_manufactured_solution(x,y,b,t):
     return exp(-b*t)*cos(mx*x*pi/Lx)*cos(my*y*pi/Ly)*sin(w*t)
     
 def test_manufactured_solution(version):
-
-    
+    h = 0.1
     q_const = ((w*Lx*Ly)/pi)**2*(1/((Lx*my)**2 + (Ly*mx)**2))
     q = ones((Nx+1,Ny+1)) * q_const
     
     def f(x,y,t):
-        return w*b*exp(-b*t)*cos(mx*x*pi/Lx)*cos(my*y*pi/Ly)*sin(w*t)
+        return -w*b*exp(-b*t)*cos(mx*x*pi/Lx)*cos(my*y*pi/Ly)*sin(w*t)
         
     def I(x,y):
         return cos(mx*x*pi/Lx)*cos(my*y*pi/Ly)
@@ -222,12 +238,12 @@ def test_manufactured_solution(version):
         return -b*cos(mx*x*pi/Lx)*cos(my*y*pi/Ly)
         
     
-    E = solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version)
+    E = solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, h, standing=True)
     
-    print E
+    #print E
 
     
-#test_manufactured_solution("scalar")
+test_manufactured_solution("scalar")
 
 
 def test_constant(version):
@@ -254,6 +270,7 @@ def test_constant(version):
     print "Final solution!!!", u
  
 #test_constant("scalar")
+#test_constant("vectorized")
 
 def plot_1D(u, x, fig, ax, n):
     """
@@ -278,10 +295,10 @@ def test_1D_plug(version):
     Ny = 200
     Lx = 4
     Ly = 4
-    T = 20
+    T = 4
     c = 1.
-    b =0
-    dt = 0.04
+    b = 0.5
+    dt = -1.0
     sigma = Lx/10.
     xc = Lx/2.
     #xc = 0
@@ -320,6 +337,6 @@ def test_1D_plug(version):
     
 
 #test_constant_1D("scalar")    
-test_1D_plug("vectorized")
+#test_1D_plug("vectorized")
 
     
