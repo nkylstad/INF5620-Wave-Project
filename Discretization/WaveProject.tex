@@ -1,0 +1,172 @@
+\documentclass[11pt]{article}
+\usepackage[latin1]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{amsmath, amsthm, amsfonts}
+\usepackage[parfill]{parskip}
+
+\begin{document}
+\title{INF5620, Fall 2012 \\Compolsory project 1}
+\date{\today }
+\author{Ingeborg Sauge Torp, Nina Kristine Kylstad, Heidi Isabell Denis}
+\maketitle
+
+\section*{The two-dimensional wave equation}
+Consider the standard two-dimensional linear wave equation including damping,
+\begin{equation} \label{eq:wave}
+\frac{\partial^2 u}{\partial t^2} + b\frac{\partial u}{\partial t} = \frac{\partial}{\partial x} \left( q(x,y) \frac{\partial u}{\partial x} \right) + \frac{\partial}{\partial y} \left( q(x,y) \frac{\partial u}{\partial y} \right) + f(x,y,t),
+\end{equation}
+imposed to the boundary condition $\frac{\partial u}{\partial n} = 0$ in a rectangular spatial domain $\left[0, L_x \right] \times \left[0, L_y \right]$ with the initial conditions $u(x,y,0) = I(x,y)$ and $u_t(x,y,0) = V(x,y)$.
+
+Now, let the temporal domain $\left[0, T\right]$ be represented by a finite number of mesh points $\{t^n\}_{n=0}^N$, where
+\begin{equation*}
+t^0 = 0 < t^1< t^2 < ... < t^{N-1} < tN = T.
+\end{equation*}
+Similarly, the spatial domains $\left[0,L_x \right]$ and $\left[0,L_y \right]$ are replaced by  $\{x_i\}_{i=0}^{N_x}$ and $\{y_j\}_{j=0}^{N_y}$, respectively, where
+\begin{align*}
+0 &= x_0 < x_1 < x_2 < ... < x_{N_x - 1} < x_{N_x} = L_x, \\
+0 &= y_0 < y_1 < y_2 < ... < y_{N_y - 1} < y_{N_y} = L_y.
+\end{align*}
+For uniformly distributed mesh points, the constant mesh spacings $\Delta t$, $\Delta x$, and $\Delta y$ may be introduced, such that
+\begin{align*}
+t^n &= n \Delta t, \qquad n = 0, ..., N, \\
+x_i &= i \Delta x, \qquad i = 0, ..., N_x, \\
+y_j &= j \Delta y, \qquad j = 0, ..., N_y.
+\end{align*}
+The solution $u(x,y,t)$ is sought at the mesh points, that is $u(x_i, y_j, t^n)$ for $i = 0, ..., N_x$, $j = 0, ..., N_y$, and $n = 0, ..., N$. The numerical approximation at the mesh point $(x_i, y_j, t^n)$ is denoted as $u_{i,j}^n$.
+For a numerical solution by the finite difference method, the condition that (\ref{eq:wave}) holds for all points in the domain $(0, L_x) \times (0, L_y) \times (0, T]$ is therefore reduces to the requirement that the PDE is
+fulfilled at the mesh points.
+
+By means of centered differences, the first- and second-order derivative with respect to time can be expressed as
+\begin{equation*}
+\frac{\partial}{\partial t} u(x_i, y_j, t^n) \approx \frac{u_{i,j}^{n+1} - u_{i,j}^{n-1}}{2\Delta t} = [D_{2t} u]_{i,j}^n,
+\end{equation*}
+and
+\begin{equation*}
+\frac{\partial^2}{\partial t^2} u(x_i, y_j, t^n) \approx \frac{u_{i,j}^{n+1} - 2u_{i,j}^n + u_{i,j}^{n-1}} {\Delta t^2} = \left[D_t D_t u \right]_{i,j}^n,
+\end{equation*}
+respectively. Furthermore, the principal idea when discretizing a variable coefficient is to first discretize the outer derivative by means of the centered derivative, and thereafter similarly discretize the inner derivative.
+Defining $\phi_x = q(x,y) \frac{\partial u}{\partial x}$, $\phi_y = q(x,y) \frac{\partial u}{\partial y}$, and following through with the above-mentioned description,
+\begin{equation*}
+\left[\frac{\partial \phi_x}{\partial x} \right]_{i,j}^n \approx \frac{(\phi_x)_{i + \frac{1}{2}, j}^n - (\phi_x)_{i-\frac{1}{2}, j}^n}{\Delta x} = [D_x \phi_x]_{i,j}^n.
+\end{equation*}
+The contributions from the inner derivative are thus
+\begin{equation*}
+(\phi_x)_{i + \frac{1}{2}, j}^n = q_{i + \frac{1}{2}, j} \left[\frac{\partial u}{\partial x} \right]_{i + \frac{1}{2}, j}^n \approx q_{i + \frac{1}{2}, j} \frac{u_{i + 1, j}^n - u_{i,j}^n}{\Delta x} = [qD_x u]_{i + \frac{1}{2}, j}^n,
+\end{equation*}
+and
+\begin{equation*}
+(\phi_x)_{i - \frac{1}{2}, j}^n = q_{i - \frac{1}{2}, j} \left[\frac{\partial u}{\partial x} \right]_{i - \frac{1}{2}, j}^n \approx q_{i - \frac{1}{2}, j} \frac{u_{i , j}^n - u_{i-1,j}^n}{\Delta x} = [qD_x u]_{i - \frac{1}{2}, j}^n.
+\end{equation*}
+These intermediate results combined yield that
+\begin{equation*}
+\left[ \frac{\partial}{\partial x} \left (q(x,y) \frac{\partial u}{\partial x} \right) \right]_{i,j}^n \approx \frac{1}{\Delta x^2} \left(q_{i+\frac{1}{2}, j} (u_{i+1,j}^n - u_{i,j}^n) - q_{i-\frac{1}{2}, j}(u_{i,j}^n - u_{i-1,j}^n) \right)
+= \left[D_x q D_x u \right]_{i,j}^n.
+\end{equation*}
+
+Similar reasoning may be applied to $\phi_y$, such that
+\begin{equation*}
+\left[ \frac{\partial}{\partial y} \left (q(x,y) \frac{\partial u}{\partial y} \right) \right]_{i,j}^n \approx \frac{1}{\Delta y^2} \left(q_{i, j+ \frac{1}{2}} (u_{i,j+1}^n - u_{i,j}^n) - q_{i, j-\frac{1}{2}}(u_{i,j}^n - u_{i,j-1}^n) \right)
+= \left[D_y q D_y u \right]_{i,j}^n.
+\end{equation*}
+
+Hence, a discretization of (\ref{eq:wave}) in terms of centered differences reads
+\begin{equation*}
+\left[D_t D_t u + b D_{2t} u = c^2(D_x D_x u + D_y D_y u) + f \right]_{i,j}^n.
+\end{equation*}
+Written out in full detail, this is equivalent to
+\begin{align*}
+&\frac{u_{i,j}^{n+1} - 2u_{i,j}^n + u_{i,j}^{n-1}} {\Delta t^2} + b\frac{u_{i,j}^{n+1} - u_{i,j}^{n-1}}{2\Delta t} \\
+&= \frac{1}{\Delta x^2} \left(q_{i+\frac{1}{2}, j} (u_{i+1,j}^n - u_{i,j}^n) - q_{i-\frac{1}{2}, j}(u_{i,j}^n - u_{i-1,j}^n) \right) \\
+&+ \frac{1}{\Delta y^2} \left(q_{i, j+ \frac{1}{2}} (u_{i,j+1}^n - u_{i,j}^n) - q_{i, j-\frac{1}{2}}(u_{i,j}^n - u_{i,j-1}^n) \right) + f_{i,j}^n.
+\end{align*}
+Due to the arithmetic mean, values for $q$ may be determined even though the function might be discrete, that is
+\begin{align*}
+q_{i+\frac{1}{2}, j} &= \frac{q_{i,j} + q_{i+1,j}}{2}, \\
+q_{i-\frac{1}{2}, j} &= \frac{q_{i,j} + q_{i-1,j}}{2}, \\
+q_{i,j+\frac{1}{2}} &= \frac{q_{i,j} + q_{i,j+1}}{2}, \\
+q_{i,j-\frac{1}{2}} &= \frac{q_{i,j} + q_{i,j-1}}{2}.
+\end{align*} 
+Finally, solving for the unknown $u_{i,j}^{n+1}$ result in the scheme
+\begin{align}
+u_{i,j}^{n+1} &= (1+\frac{b}{2}\Delta t)^{-1} \bigg[2u_{i,j}^n - (1-\frac{b}{2}\Delta t) u_{i,j}^{n-1} + \Delta t^2 f_{i,j}^n \nonumber \\
+&+ \frac{\Delta t^2}{\Delta x^2} \left(q_{i+\frac{1}{2},j} (u_{i+1,j}^n - u_{i,j}^n) -  q_{i-\frac{1}{2},j} (u_{i,j}^n - u_{i-1,j}^n) \right) \\
+&+ \frac{\Delta t^2}{\Delta y^2} \left(q_{i,j+\frac{1}{2}} (u_{i,j+1}^n - u_{i,j}^n) -  q_{i,j-\frac{1}{2}} (u_{i,j}^n - u_{i,j-1}^n) \right) \bigg]. \nonumber
+\end{align}
+
+Due to the imposed Neumann condition on the boundary,
+\begin{equation*}
+\frac{\partial u}{\partial n} = \mathbf{n} \cdot \nabla u = n_x\frac{\partial u}{\partial x} + n_y \frac{\partial u}{\partial y} = 0. 
+\end{equation*}
+On the edge $x=0$ the normal vector pointing out of the spatial domain is $-\hat{i} = (-1,0)$, so consequently $\frac{\partial u}{\partial n} = -\frac{\partial u}{\partial x}$.
+Discretizing this for $\{y_j\}_{j=0}^{N_y}$ and $\{t^n\}_{n=0}^N$ provide the relation
+\begin{equation*}
+-\frac{u_{1,j}^n - u_{-1,j}^n}{2\Delta x} = 0 \ \implies u_{-1,j}^n = u_{1,j}^n.
+\end{equation*}
+Inserting this condition into the scheme provide a modified scheme for the boundary points at $x=0$, that is
+\begin{align}
+u_{0,j}^{n+1} &= (1+\frac{b}{2}\Delta t)^{-1} \bigg[2u_{0,j}^n - (1-\frac{b}{2}\Delta t) u_{0,j}^{n-1} + \Delta t^2 f_{0,j}^n \nonumber \\
+&+ \frac{\Delta t^2}{\Delta x^2} \left(q_{\frac{1}{2},j} (u_{1,j}^n - u_{0,j}^n) -  q_{-\frac{1}{2},j} (u_{0,j}^n - u_{1,j}^n) \right) \\
+&+ \frac{\Delta t^2}{\Delta y^2} \left(q_{0,j+\frac{1}{2}} (u_{0,j+1}^n - u_{0,j}^n) -  q_{0,j-\frac{1}{2}} (u_{0,j}^n - u_{0,j-1}^n) \right) \bigg]. \nonumber
+\end{align}
+
+On the edge $x=L_x$ the normal vector pointing out of the spatial domain is $\hat{i} = (1,0)$, so consequently $\frac{\partial u}{\partial n} = \frac{\partial u}{\partial x}$.
+Discretizing this for $\{y_j\}_{j=0}^{N_y}$ and $\{t^n\}_{n=0}^N$ provide the relation
+\begin{equation*}
+\frac{u_{N_x + 1,j}^n - u_{N_x - 1,j}^n}{2\Delta x} = 0 \ \implies u_{N_x + 1,j}^n = u_{N_x - 1,j}^n.
+\end{equation*}
+Inserting this condition into the scheme provide a modified scheme for the boundary points at $x=L_x$, that is
+\begin{align}
+u_{N_x,j}^{n+1} &= (1+\frac{b}{2}\Delta t)^{-1} \bigg[2u_{N_x,j}^n - (1-\frac{b}{2}\Delta t) u_{N_x,j}^{n-1} + \Delta t^2 f_{N_x,j}^n \nonumber \\
+&+ \frac{\Delta t^2}{\Delta x^2} \left(q_{N_x+\frac{1}{2},j} (u_{N_x-1,j}^n - u_{N_x,j}^n) -  q_{N_x-\frac{1}{2},j} (u_{N_x,j}^n - u_{N_x-1,j}^n) \right) \\
+&+ \frac{\Delta t^2}{\Delta y^2} \left(q_{N_x,j+\frac{1}{2}} (u_{N_x,j+1}^n - u_{N_x,j}^n) -  q_{N_x,j-\frac{1}{2}} (u_{N_x,j}^n - u_{N_x,j-1}^n) \right) \bigg]. \nonumber
+\end{align}
+
+On the edge $y=0$ the normal vector pointing out of the spatial domain is $-\hat{j} = (0,-1)$, so consequently $\frac{\partial u}{\partial n} = -\frac{\partial u}{\partial y}$.
+Discretizing this for $\{x_i\}_{i=0}^{N_x}$ and $\{t^n\}_{n=0}^N$ provide the relation
+\begin{equation*}
+-\frac{u_{i,1}^n - u_{i,-1}^n}{2\Delta y} = 0 \ \implies u_{i,-1}^n = u_{i,1}^n.
+\end{equation*}
+Inserting this condition into the scheme provide a modified scheme for the boundary points at $y=0$, that is
+\begin{align}
+u_{i,0}^{n+1} &= (1+\frac{b}{2}\Delta t)^{-1} \bigg[2u_{i,0}^n - (1-\frac{b}{2}\Delta t) u_{i,0}^{n-1} + \Delta t^2 f_{i,0}^n \nonumber \\
+&+ \frac{\Delta t^2}{\Delta x^2} \left(q_{i+\frac{1}{2},0} (u_{i+1,0}^n - u_{i,0}^n) -  q_{i-\frac{1}{2},0} (u_{i,0}^n - u_{i-1,0}^n) \right) \\
+&+ \frac{\Delta t^2}{\Delta y^2} \left(q_{i,\frac{1}{2}} (u_{i,1}^n - u_{i,0}^n) -  q_{i,-\frac{1}{2}} (u_{i,0}^n - u_{i,1}^n) \right) \bigg]. \nonumber
+\end{align}
+
+On the edge $y=L_y$ the normal vector pointing out of the spatial domain is $\hat{j} = (0,1)$, so consequently $\frac{\partial u}{\partial n} = \frac{\partial u}{\partial y}$.
+Discretizing this for $\{x_i\}_{i=0}^{N_x}$ and $\{t^n\}_{n=0}^N$ provide the relation
+\begin{equation*}
+\frac{u_{i,N_y + 1}^n - u_{i,N_y - 1}^n}{2\Delta y} = 0 \ \implies u_{i,N_y + 1}^n = u_{i,N_y -1}^n.
+\end{equation*}
+Inserting this condition into the scheme provide a modified scheme for the boundary points at $y=L_y$, that is
+\begin{align}
+u_{i,N_y}^{n+1} &= (1+\frac{b}{2}\Delta t)^{-1} \bigg[2u_{i,N_y}^n - (1-\frac{b}{2}\Delta t) u_{i,N_y}^{n-1} + \Delta t^2 f_{i,N_y}^n \nonumber \\
+&+ \frac{\Delta t^2}{\Delta x^2} \left(q_{i+\frac{1}{2},N_y} (u_{i+1,N_y}^n - u_{i,N_y}^n) -  q_{i-\frac{1}{2},N_y} (u_{i,N_y}^n - u_{i-1,N_y}^n) \right) \\
+&+ \frac{\Delta t^2}{\Delta y^2} \left(q_{i,N_y+\frac{1}{2}} (u_{i,N_y-1}^n - u_{i,N_y}^n) -  q_{i,N_y-\frac{1}{2}} (u_{i,N_y}^n - u_{i,N_y-1}^n) \right) \bigg]. \nonumber
+\end{align}
+
+
+The initial conditions are $u(x,y,0)= I(x,y)$ and $u_t(x,y,0)=V(x,y)$. This implies that
+\begin{equation}
+u_{i,j}^0 = I(x_i, y_j), 
+\end{equation}
+ and
+ \begin{equation*}
+ \frac{u_{i,j}^{1} - u_{i,j}^{-1}}{2 \Delta t} = V(x_i,y_j),
+ \end{equation*}
+ for all  $i=1, ..., N_x - 1$ and $j=1, ..., N_y - 1$.
+ Now, evaluating the scheme at $t_1$ one may eliminate the contribution from the point outside the mesh, that is
+\begin{align*}
+u_{i,j}^{1} &= (1+\frac{b}{2}\Delta t)^{-1} \bigg[2u_{i,j}^0 - (1-\frac{b}{2}\Delta t) u_{i,j}^{-1} + \Delta t^2 f_{i,j}^0 \nonumber \\
+&+ \frac{\Delta t^2}{\Delta x^2} \left(q_{i+\frac{1}{2},j} (u_{i+\frac{1}{2},j}^0 - u_{i,j}^0) -  q_{i-\frac{1}{2},j} (u_{i,j}^0 - u_{i-\frac{1}{2},j}^0) \right) \\
+&+ \frac{\Delta t^2}{\Delta y^2} \left(q_{i,j+\frac{1}{2}} (u_{i,j+\frac{1}{2}}^0 - u_{i,j}^0) -  q_{i,j-\frac{1}{2}} (u_{i,j}^0 - u_{i,j-\frac{1}{2}}^0) \right) \bigg]. \nonumber
+\end{align*}
+Inserting the initial Neumann condition $u_{i,j}^{-1} = u_{i,j}^1 - 2\Delta t V_{i,j}$ provides the necessary second initial condition
+\begin{align}
+u_{i,j}^1 &= I_{i,j} + \Delta t(1- \frac{b}{2} \Delta t) V_{i,j} + \Delta t^2 f_{i,j}^0 \nonumber \\
+&+ \frac{1}{2} \bigg[\frac{\Delta t^2}{\Delta x^2} \left(q_{i+\frac{1}{2},j} (u_{i+\frac{1}{2},j}^0 - u_{i,j}^0) -  q_{i-\frac{1}{2},j} (u_{i,j}^0 - u_{i-\frac{1}{2},j}^0) \right) \\
+&+ \frac{\Delta t^2}{\Delta y^2} \left(q_{i,j+\frac{1}{2}} (u_{i,j+\frac{1}{2}}^0 - u_{i,j}^0) -  q_{i,j-\frac{1}{2}} (u_{i,j}^0 - u_{i,j-\frac{1}{2}}^0) \right) \bigg]. \nonumber
+\end{align}
+
+\end{document}
