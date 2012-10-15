@@ -14,3 +14,5 @@ def make_movie():
     sci.movie("tmp_*.png")
     for i in glob.glob("tmp_*.png"):
         os.remove(i)
+
+make_movie()

@@ -103,10 +103,10 @@ def plot_exact():
     file.write("T="+str(T)+"\n")
     file.write("N="+str(N)+"\n")
     file.close()
-    U_e0 = exact_manufactured_solution(X,Y,b,t[0])
+    U_e0 = exact_manufactured_solution(X,Y,b,t[0], "scalar")
     savetxt("u0.txt", U_e0)
     for n in range(1,N+1):
-        U_e = exact_manufactured_solution(X,Y,b,t[n])
+        U_e = exact_manufactured_solution(X,Y,b,t[n], "scalar")
         #print U_e
         savetxt("texttmp%.4d.txt"%n, U_e)
 
