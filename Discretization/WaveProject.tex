@@ -164,8 +164,8 @@ u_{i,j}^{1} &= (1+\frac{b}{2}\Delta t)^{-1} \bigg[2u_{i,j}^0 - (1-\frac{b}{2}\De
 \end{align*}
 Inserting the initial Neumann condition $u_{i,j}^{-1} = u_{i,j}^1 - 2\Delta t V_{i,j}$ provides the necessary second initial condition
 \begin{align}
-u_{i,j}^1 &= I_{i,j} + \Delta t(1- \frac{b}{2} \Delta t) V_{i,j} + \Delta t^2 f_{i,j}^0 \nonumber \\
-&+ \frac{1}{2} \bigg[\frac{\Delta t^2}{\Delta x^2} \left(q_{i+\frac{1}{2},j} (u_{i+\frac{1}{2},j}^0 - u_{i,j}^0) -  q_{i-\frac{1}{2},j} (u_{i,j}^0 - u_{i-\frac{1}{2},j}^0) \right) \\
+u_{i,j}^1 &= I_{i,j} + \Delta t(1- \frac{b}{2} \Delta t) V_{i,j} + \frac{1}{2} \bigg[\Delta t^2 f_{i,j}^0 \nonumber \\
+&+ \frac{\Delta t^2}{\Delta x^2} \left(q_{i+\frac{1}{2},j} (u_{i+\frac{1}{2},j}^0 - u_{i,j}^0) -  q_{i-\frac{1}{2},j} (u_{i,j}^0 - u_{i-\frac{1}{2},j}^0) \right) \\
 &+ \frac{\Delta t^2}{\Delta y^2} \left(q_{i,j+\frac{1}{2}} (u_{i,j+\frac{1}{2}}^0 - u_{i,j}^0) -  q_{i,j-\frac{1}{2}} (u_{i,j}^0 - u_{i,j-\frac{1}{2}}^0) \right) \bigg]. \nonumber
 \end{align}
 
