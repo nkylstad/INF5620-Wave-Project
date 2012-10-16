@@ -41,12 +41,12 @@ def test_manufactured_solution(version, h,w):
         if version=="scalar":
             f_val = m.exp(-b*t)*(m.cos(cx*x)*m.cos(cy*y)*(-w**2*m.cos(w*t) + b*w*m.sin(w*t)) + \
                 cx*y*m.cos(cy*y)*m.cos(w*t)*(cx*x*m.cos(cx*x) + m.sin(cy*y)) + \
-                cy*x*m.cos(cx*x)*m.cos(w*t)*(cy*y*m.cos(cy*y) + m.sin(cy*y)))
+                cy*x*m.cos(cx*x)*m.cos(w*t)*(cy*y*m.cos(cy*y) + m.sin(cx*x)))
             return f_val
         else:
             f_val = exp(-b*t)*(cos(cx*x)*cos(cy*y)*(-w**2*cos(w*t) + b*w*sin(w*t)) + \
                 cx*y*cos(cy*y)*cos(w*t)*(cx*x*cos(cx*x) + sin(cy*y)) + \
-                cy*x*cos(cx*x)*cos(w*t)*(cy*y*cos(cy*y) + sin(cy*y)))
+                cy*x*cos(cx*x)*cos(w*t)*(cy*y*cos(cy*y) + sin(cx*x)))
             return f_val
         
     def I(x,y):
@@ -71,12 +71,12 @@ def compute_error(h, w):
     e_list = test_manufactured_solution("vectorized", h, w)
     #print e_list[1]
     for e in e_list:
-        temp = sqrt(h**4*sum(e**2))
+        temp = sqrt(h*sum(e**2))
         E_list.append(temp)
     s = 0
     for e in E_list:
         s += e**2
-    E = sqrt(h**4*s)
+    E = sqrt(h*s)
     return E
   
   

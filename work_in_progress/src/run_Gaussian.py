@@ -27,21 +27,23 @@ def run_Gaussian(version):
         """Gaussian peak at (Lx/2, Ly/2)."""
         return 2*exp(-0.5*((x-Lx/2.0)/(sigma))**2 - 0.5*((y-Ly/2.0)/(sigma))**2)
     version = version
+    
     def V(x,y):
         if version=="scalar":
             return factor*1
         else:
-            return ones((Nx+1,Ny+1))*factor
+            return ones((len(x),len(y)))*factor
             
-    q = ones((Nx+1,Ny+1))
-    q = 0.3*q
+    def q(x, y):
+        q = ones((len(x),len(y)))
+        return 0.3*q
     
     if version == "scalar":
         def f(x,y,t):
             return 0
     else:
         def f(x,y,t):
-            return zeros((Nx+1,Ny+1))
+            return zeros((len(x),len(y)))
     
     
     E = solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, make_plot=True)

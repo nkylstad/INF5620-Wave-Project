@@ -62,7 +62,6 @@ def test_standing_wave(version, h, w):
 
     
 def compute_error(h, w):
-    E_list = []
     e_list = test_standing_wave("vectorized", h, w)
     E = sqrt(h*sum(e_list**2))
     return E/(h**2)
