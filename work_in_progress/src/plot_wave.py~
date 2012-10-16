@@ -2,7 +2,7 @@ from mayavi import mlab
 from numpy import *
 from scitools.std import *
 import os, glob, time, argparse
-#from mayavi.api import OffScreenEngine
+from mayavi.api import OffScreenEngine
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-rm",action="store_true") 
@@ -31,6 +31,7 @@ for i in varlist:
 dx = Lx/float(Ny+1)
 dy = Ly/float(Ny+1)
 t = linspace(0,T, N+1)
+print N
 files = glob.glob('texttmp*.txt')
 sorted_files = sorted(files)
 length = len(files)
@@ -46,7 +47,7 @@ mlab.options.offscreen = True
 #mlab.view(50, -100)
 #X,Y = meshgrid(linspace(0,Lx,(Nx/dx)),linspace(0,Ly,(Ny/dy)))
 X,Y = meshgrid(linspace(0,Lx,Nx+1), linspace(0,Ly,Ny+1))
-s = mlab.mesh(X[1:-1,1:-1], Y[1:-1,1:-1], u0[1:-1,1:-1], color=(0.0, 0.8, 0.7), extent=def_axis)
+s = mlab.mesh(X[1:-1,1:-1], Y[1:-1,1:-1], u0[1:-1,1:-1], color=(0.0, 0.8, 0.7))
 mlab.title("t=%.4f" % t[0], color=(1,1,1),size=0.5)
 mlab.savefig("wtmp0000.png")
 mlab.clf()
@@ -58,7 +59,7 @@ for matrix in sorted_files:
 	mlab.options.offscreen = True
 	#mlab.figure()
 	#mlab.view(50, -100)
-	mlab.mesh(X[1:-1,1:-1], Y[1:-1,1:-1], l[1:-1,1:-1], color=(0.0,0.8,0.7), extent=def_axis)
+	mlab.mesh(X[1:-1,1:-1], Y[1:-1,1:-1], l[1:-1,1:-1], color=(0.0,0.8,0.7))
 	mlab.title("t=%.4f" %t[i], color=(1,1,1),size=0.5 )
 	mlab.savefig("wtmp%.4d.png" %i)
 	mlab.clf()
