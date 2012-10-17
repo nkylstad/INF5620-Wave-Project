@@ -17,7 +17,7 @@ dt = -1.0
 w = 1.1
 my = 2
 mx = 2
-h = 0.1
+h = 2
 version = "vectorized"
 
 
@@ -37,12 +37,9 @@ def test_standing_wave(version, h, w):
     
     def f(x,y,t):
         if version=="scalar":
-            return w*b*m.exp(-b*t)*m.cos(mx*x*pi/Lx)*m.cos(my*y*pi/Ly)*m.sin(w*t)
+            return b*m.exp(-b*t)*m.cos(mx*x*pi/Lx)*m.cos(my*y*pi/Ly)*m.sin(w*t)
         else:
-            if t==0:
-                return zeros((len(x),len(y)))
-            else:
-                return w*b*exp(-b*t)*cos(mx*x*pi/Lx)*cos(my*y*pi/Ly)*sin(w*t)
+            return b*exp(-b*t)*cos(mx*x*pi/Lx)*cos(my*y*pi/Ly)*sin(w*t)
         
     def I(x,y):
         if version=="scalar":   
@@ -56,16 +53,15 @@ def test_standing_wave(version, h, w):
         else:
             return -b*cos(mx*x*pi/Lx)*cos(my*y*pi/Ly)
         
-    E_list, u = solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, h, w, exact_standing_wave, standing=True, make_plot=False)
+    E_list, u = solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, h, w, exact_standing_wave, standing=True, make_plot=True)
     return E_list
     
 
     
 def compute_error(h, w):
-    e_list = test_standing_wave("vectorized", h, w)
+    e_list = test_standing_wave("scalar", h, w)
     E = sqrt(h*sum(e_list**2))
     return E/(h**2)
-    #return E
        
        
 
@@ -73,6 +69,8 @@ h_list = [2, 1, 0.5, 0.25, 0.125]
 for h_val in h_list:
     error = compute_error(h_val, w)
     print "h = %g, E/h^2 = %g" % (h_val, error)
+    
+
 #Error_list=[]
 #for h_val in h_list:
     #Error_list.append(compute_error(h_val, w))
@@ -112,7 +110,7 @@ def plot_exact():
     #for i in range(Nx+1):
         #for j in range(Ny+1):
             #U_e[i,j] = exact_standing_wave(x[i], y[j], b, t[0])
-    U_e0 = exact_standing_wave(X,Y,b,t[0])
+    U_e0 = exact_standing_wave(X,Y,b,t[0],w)
     
     #plt.savefig("tmp_%.4d.png" % 0)
     #ax.cla()
@@ -125,7 +123,7 @@ def plot_exact():
         #plt.savefig("tmp_%.4d.png" % n)
         #ax.cla()
         #print "Saved fig %g out of %g" % (n, N)
-        U_e = exact_standing_wave(X,Y,b,t[n])
+        U_e = exact_standing_wave(X,Y,b,t[n],w)
         #print "t=%g" %n, U_e
         #print U_e
         savetxt("texttmp%.4d.txt"%n, U_e)

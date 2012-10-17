@@ -6,19 +6,22 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
     
 C = 1
-Nx = 20
-Ny = 20
+#Nx = 20
+#Ny = 20
 Lx = 4
 Ly = 4
-T = 10
+T = 1
 c = 1.1
 b = 0.05
-dt = -1.0
-w = 1.1
+w = pi
 my = 2
 mx = 2
-h = 2
 version = "vectorized"
+q_const = 0.1
+cx = mx*pi/Lx
+cy = my*pi/Ly
+#dt = (1/c)*(1/(sqrt(1/0.04**2 + 1/0.04**2)))
+dt = 0.0155
 
 
 def exact_standing_wave(x,y,b,t,w,version="vectorized"):
@@ -29,17 +32,17 @@ def exact_standing_wave(x,y,b,t,w,version="vectorized"):
 
         
     
-def test_standing_wave(version, h, w):
+def test_standing_wave(version, w, Nx):
+    Ny = Nx
    
     def q(x,y):
-        q_const = ((w*Lx*Ly)/pi)**2*(1/((Lx*my)**2 + (Ly*mx)**2))
         return ones((len(x),len(y))) * q_const
     
     def f(x,y,t):
         if version=="scalar":
-            return b*m.exp(-b*t)*m.cos(mx*x*pi/Lx)*m.cos(my*y*pi/Ly)*m.sin(w*t)
+            return m.exp(-b*t)*m.cos(cx*x)*m.cos(cy*y)*(m.cos(w*t)*(q_const*cx**2 + q_const*cy**2 - w**2) + b*w*m.sin(w*t))
         else:
-            return b*exp(-b*t)*cos(mx*x*pi/Lx)*cos(my*y*pi/Ly)*sin(w*t)
+           return exp(-b*t)*cos(cx*x)*cos(cy*y)*(cos(w*t)*(q_const*cx**2 + q_const*cy**2 - w**2) + b*w*sin(w*t))
         
     def I(x,y):
         if version=="scalar":   
@@ -53,47 +56,56 @@ def test_standing_wave(version, h, w):
         else:
             return -b*cos(mx*x*pi/Lx)*cos(my*y*pi/Ly)
         
-    E_list, u = solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, h, w, exact_standing_wave, standing=True, make_plot=True)
-    return E_list
+    E_list, u, dx = solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, w, exact_standing_wave, standing=True, make_plot=False)
+    return E_list, dx
     
 
     
-def compute_error(h, w):
-    e_list = test_standing_wave("vectorized", h, w)
-    E = sqrt(h*sum(e_list**2))
-    return E/(h**2)
+def compute_error(w, Nx):
+    e_list, dx = test_standing_wave("vectorized", w, Nx)
+    E = sqrt(dx*dx*sum(e_list**2))
+    return E, dx
        
-       
 
-h_list = [2, 1, 0.5, 0.25, 0.125]
-for h_val in h_list:
-    error = compute_error(h_val, w)
-    print "h = %g, E/h^2 = %g" % (h_val, error)
-    
-
-#Error_list=[]
-#for h_val in h_list:
-    #Error_list.append(compute_error(h_val, w))
-#print "E-list: ", Error_list
-#m = len(h_list)
-#r = [log(Error_list[i-1]/Error_list[i])/(log(h_list[i-1]/h_list[i])) for i in range(1, m, 1)]
-#print "Convergence rates: "
-#print r
+Nx_list = [20.0, 40.0, 80.0, 160.0]
+Error_list=[]
+E_dx_list=[]
+dx_list=[]
+for nx in Nx_list:
+    error, dx = compute_error(w, nx)
+    dx_list.append(dx)
+    Error_list.append(error)
+    E_dx_list.append(error/dx**2)
+    #print "Nx = %g, E = %g" % (nx, error)
+m = len(Nx_list)
+print "dx-list:"
+print dx_list
+print "E/dx**2: "
+print E_dx_list
+print "Error_list:"
+print Error_list
+r = [log(Error_list[i-1]/Error_list[i])/log(dx_list[i-1]/dx_list[i]) for i in range(1, m, 1)]
+noe = [Error_list[i-1]/Error_list[i] for i in range(1,m,1)]
+print noe
+print "Convergence rates: "
+print r
 
     
     
 def plot_exact():
-    x = linspace(0,Lx,Nx+1)
-    y = linspace(0,Ly,Ny+1)
-    X,Y = meshgrid(x,y)
-    Fx = 0.8
-    Fy = 0.8
-    Ft = 1/c *1/sqrt(1/Fx**2 + 1/Fy**2)
-    dx = Fx*h
-    dy = Fy*h
-    dt = Ft*h
+    #Fy = 0.8
+    #Fx = 0.8
+    #Ft = 1/float(c) *1/sqrt(1/Fx**2 + 1/Fy**2)
+    #dx = Fx*h
+    #dy = Fy*h
+    #dt = Ft*h
     #dt = (1/float(c))*(1/sqrt(1/dx**2 + 1/dy**2))
     N = int(round(float(T/dt)))
+    x = linspace(0,Lx,Nx+1)
+    y = linspace(0,Ly,Ny+1)
+    dx = x[1] - x[0]
+    dy = y[1] - y[0]
+    X,Y = meshgrid(x,y)
     t = linspace(0,T,N+1)
     file = open("initial.txt",'w')
     file.write("Nx="+str(Nx)+"\n")
@@ -128,6 +140,5 @@ def plot_exact():
         #print U_e
         savetxt("texttmp%.4d.txt"%n, U_e)
 
-        
+    
 #plot_exact()
-

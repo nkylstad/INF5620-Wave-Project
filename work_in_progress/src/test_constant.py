@@ -12,13 +12,15 @@ b = 0.1
 sigma = 0.8
 
 def test_constant(version):
-    q = ones((Nx+1,Ny+1))*0.8
+    
+    def q(x,y):
+        return ones((len(x),len(y)))*0.8
     
     def V(x,y):
         if version == "scalar":
             return 0
         else:
-            return zeros((Nx+1,Ny+1))
+            return zeros((len(x),len(y)))
         
         
     def I(x,y):
@@ -29,11 +31,16 @@ def test_constant(version):
         if version == "scalar":
             return 0
         else:
-            return zeros((Nx+1,Ny+1))
+            return zeros((len(x),len(y)))
         
     
     E, u = solver(Lx,Ly,Nx,Ny,T,dt,c,I,q,V,f,b,version)
-    print u
+    if version == "scalar":
+        print u
+    else:
+        print u[1:-1,1:-1]
  
-#test_constant("scalar")
+print "Scalar:"
+test_constant("scalar")
+print "Vectorized:"
 test_constant("vectorized")

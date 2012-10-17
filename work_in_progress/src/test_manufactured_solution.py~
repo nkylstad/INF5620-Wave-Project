@@ -6,15 +6,15 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
     
 C = 1
-Nx = 20
-Ny = 20
-Lx = 10
-Ly = 10
+#Nx = 20
+#Ny = 20
+Lx = 4
+Ly = 4
 T = 4
 c = 1.1
 b = 0.05
-dt = -1.0
-w = 1.3
+dt = 0.02
+w = 4.18
 my = 2
 mx = 2
 h = 0.1
@@ -24,15 +24,18 @@ cy = my*pi/Ly
 
 
 
+
 def exact_manufactured_solution(x,y,b,t,w,version="vectorized"):
     if version=="scalar":
         return m.exp(-b*t)*m.cos(mx*x*pi/Lx)*m.cos(my*y*pi/Ly)*m.cos(w*t)
     else:
-        return m.exp(-b*t)*cos(mx*x*pi/Lx)*cos(my*y*pi/Ly)*m.cos(w*t)
+        return exp(-b*t)*cos(mx*x*pi/Lx)*cos(my*y*pi/Ly)*cos(w*t)
      
         
     
-def test_manufactured_solution(version, h,w):
+def test_manufactured_solution(version, w, Nx):
+   
+    Ny = Nx
    
     def q(x,y):
             return x*y
@@ -61,47 +64,34 @@ def test_manufactured_solution(version, h,w):
         else:
             return -b*cos(cx*x)*cos(cy*y)
         
-    E_list, u = solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, h, w, exact_manufactured_solution, standing=True, make_plot=False)
-    return E_list
+    E_list, u, dx = solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, w, exact_manufactured_solution, standing=False, make_plot=False)
+    return E_list, dx
     
-
     
-def compute_error(h, w):
-    E_list = []
-    e_list = test_manufactured_solution("vectorized", h, w)
-    #print e_list[1]
-    for e in e_list:
-        temp = sqrt(h*sum(e**2))
-        E_list.append(temp)
-    s = 0
-    for e in E_list:
-        s += e**2
-    E = sqrt(h*s)
-    return E
-  
-  
-
-#def test_omega():
-   #wn = 10
-   #error_test = 100
-   #w_list = linspace(0.02,2*pi, wn+1)
-   #for i in range(wn+1):
-       #error = compute_error(h, w_list[i])
-       #print "omega: %.4f" % w_list[i], "error: ", error
-       #if error < error_test:
-           #error_test = error
-           #omega = w_list[i]
-   #return error_test, omega
-       
+def compute_error(w, Nx):
+    e_list, dx = test_manufactured_solution("vectorized", w, Nx)
+    E = sqrt(dx*dx*sum(e_list**2))
+    return E, dx
        
 
-h_list = [8, 4, 2, 1, 0.5, 0.25]
+Nx_list = [20.0, 40.0, 60.0, 80.0, 100.0]
 Error_list=[]
-for h_val in h_list:
-    Error_list.append(compute_error(h_val, w))
-print "E-list: ", Error_list
-m = len(h_list)
-r = [log(Error_list[i-1]/Error_list[i])/(log(h_list[i-1]/h_list[i])) for i in range(1, m, 1)]
+dx_list = []
+E_dx_list = []
+for nx in Nx_list:
+    error, dx = compute_error(w, nx)
+    Error_list.append(error)
+    dx_list.append(dx)
+    E_dx_list.append(error/(dx**2))
+    #print "Nx = %g, E = %g" % (nx, error)
+m = len(Nx_list)
+print "dx-list:"
+print dx_list
+print "E/dx**2: "
+print E_dx_list
+print "Error_list:"
+print Error_list
+r = [log(Error_list[i-1]/Error_list[i])/log(dx_list[i-1]/dx_list[i]) for i in range(1, m, 1)]
 print "Convergence rates: "
 print r
     
@@ -117,51 +107,51 @@ print r
 
     
     
-def plot_exact():
-    x = linspace(0,Lx,Nx+1)
-    y = linspace(0,Ly,Ny+1)
-    X,Y = meshgrid(x,y)
-    Fx = 0.8
-    Fy = 0.8
-    Ft = 1/c *1/sqrt(1/Fx**2 + 1/Fy**2)
-    dx = Fx*h
-    dy = Fy*h
-    dt = Ft*h
-    #dt = (1/float(c))*(1/sqrt(1/dx**2 + 1/dy**2))
-    N = int(round(float(T/dt)))
-    t = linspace(0,T,N+1)
-    file = open("initial.txt",'w')
-    file.write("Nx="+str(Nx)+"\n")
-    file.write("Lx="+str(Lx)+"\n")
-    file.write("Ny="+str(Ny)+"\n")
-    file.write("Ly="+str(Ly)+"\n")
-    file.write("T="+str(T)+"\n")
-    file.write("N="+str(N)+"\n")
-    file.close()
-    U_e = zeros((Nx+1,Ny+1))
-    #fig = plt.figure(111)
-    #fig.clf()
-    #ax = fig.gca(projection='3d')
-    #for i in range(Nx+1):
-        #for j in range(Ny+1):
-            #U_e[i,j] = exact_manufactured_solution(x[i], y[j], b, t[0])
-    U_e0 = exact_manufactured_solution(X,Y,b,t[0])
+#def plot_exact():
+    #x = linspace(0,Lx,Nx+1)
+    #y = linspace(0,Ly,Ny+1)
+    #X,Y = meshgrid(x,y)
+    #Fx = 0.8
+    #Fy = 0.8
+    #Ft = 1/c *1/sqrt(1/Fx**2 + 1/Fy**2)
+    #dx = Fx*h
+    #dy = Fy*h
+    #dt = Ft*h
+    ##dt = (1/float(c))*(1/sqrt(1/dx**2 + 1/dy**2))
+    #N = int(round(float(T/dt)))
+    #t = linspace(0,T,N+1)
+    #file = open("initial.txt",'w')
+    #file.write("Nx="+str(Nx)+"\n")
+    #file.write("Lx="+str(Lx)+"\n")
+    #file.write("Ny="+str(Ny)+"\n")
+    #file.write("Ly="+str(Ly)+"\n")
+    #file.write("T="+str(T)+"\n")
+    #file.write("N="+str(N)+"\n")
+    #file.close()
+    #U_e = zeros((Nx+1,Ny+1))
+    ##fig = plt.figure(111)
+    ##fig.clf()
+    ##ax = fig.gca(projection='3d')
+    ##for i in range(Nx+1):
+        ##for j in range(Ny+1):
+            ##U_e[i,j] = exact_manufactured_solution(x[i], y[j], b, t[0])
+    #U_e0 = exact_manufactured_solution(X,Y,b,t[0])
     
-    #plt.savefig("tmp_%.4d.png" % 0)
-    #ax.cla()
-    savetxt("u0.txt", U_e0)
-    for n in range(1,N+1):
-        #    for i in range(Nx+1):
-        #        for j in range(Ny+1):
-        #            U_e[i,j] = exact_manufactured_solution(x[i], y[j], b, t[n])
-        #ax.plot_surface(X,Y,U_e)
-        #plt.savefig("tmp_%.4d.png" % n)
-        #ax.cla()
-        #print "Saved fig %g out of %g" % (n, N)
-        U_e = exact_manufactured_solution(X,Y,b,t[n])
-        #print "t=%g" %n, U_e
-        #print U_e
-        savetxt("texttmp%.4d.txt"%n, U_e)
+    ##plt.savefig("tmp_%.4d.png" % 0)
+    ##ax.cla()
+    #savetxt("u0.txt", U_e0)
+    #for n in range(1,N+1):
+        ##    for i in range(Nx+1):
+        ##        for j in range(Ny+1):
+        ##            U_e[i,j] = exact_manufactured_solution(x[i], y[j], b, t[n])
+        ##ax.plot_surface(X,Y,U_e)
+        ##plt.savefig("tmp_%.4d.png" % n)
+        ##ax.cla()
+        ##print "Saved fig %g out of %g" % (n, N)
+        #U_e = exact_manufactured_solution(X,Y,b,t[n])
+        ##print "t=%g" %n, U_e
+        ##print U_e
+        #savetxt("texttmp%.4d.txt"%n, U_e)
 
         
 #plot_exact()
