@@ -138,7 +138,7 @@ def solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, w=None, exact=None,
                 
     if exact:    
         Err = exact(X, Y, b, t[1], w) - u_1   # compare numerical solution to exact solution
-        E = sqrt(dt*dx*dx*sum(Err**2))
+        E = sqrt(dx*dx*sum(Err**2))
         E_list[0] = E
     
     if make_plot:
@@ -156,7 +156,7 @@ def solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, w=None, exact=None,
 
     for n in range(1,N):
         if version == "scalar":
-            u_1, u_2, E = advance_scalar(u, u_1, u_2, Nx, Ny, x, y, q, f, c1, c2, Cx2, Cy2, dt2, b, dx, dt, w, t[n+1], exact)
+            u_1, u_2, E = advance_scalar(u, u_1, u_2, Nx, Ny, x, y, q, f, c1, c2, Cx2, Cy2, dt2, b, dx, w, t[n+1], exact)
             if make_plot:
                 if oneD:
                     plot_u(u_1, x, t[n+1], n, b, Lx)
@@ -166,7 +166,7 @@ def solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, w=None, exact=None,
                     
         else:   # vectorized version
             fv = f(X,Y,t[n])
-            u_1, u_2, E = advance_vectorized(X, Y, u, u_1, u_2, q, fv, c1, c2, Cx2, Cy2, dt2, t[n+1], b, dx, dt, w, Nx, Ny, exact)
+            u_1, u_2, E = advance_vectorized(X, Y, u, u_1, u_2, q, fv, c1, c2, Cx2, Cy2, dt2, t[n+1], b, dx, w, Nx, Ny, exact)
             if make_plot:
                 if oneD:
                     plot_u(u_1[1:-1,1:-1], x[1:-1], t[n+1], n, b, Lx)
@@ -183,7 +183,7 @@ def solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, w=None, exact=None,
          
          
          
-def advance_scalar(u, u_1, u_2, Nx, Ny, x, y, q, f, c1, c2, Cx2, Cy2, dt2, b, dx, dt, w, tn, exact):
+def advance_scalar(u, u_1, u_2, Nx, Ny, x, y, q, f, c1, c2, Cx2, Cy2, dt2, b, dx, w, tn, exact):
     Err = zeros((Nx+1,Ny+1))
     for i in range(0,Nx+1):
         for j in range(0,Ny+1):
@@ -207,14 +207,14 @@ def advance_scalar(u, u_1, u_2, Nx, Ny, x, y, q, f, c1, c2, Cx2, Cy2, dt2, b, dx
             if exact:
                 Err[i,j] = exact(x[i],y[i],b,tn,w,version="scalar") - u[i,j]  # compare numerical solution with exact solution
     
-    E = sqrt(dt*dx*dx*sum(Err**2))
+    E = sqrt(dx*dx*sum(Err**2))
     u_2 = u_1.copy()
     u_1 = u.copy()
     return u_1, u_2, E
     
     
     
-def advance_vectorized(X, Y ,u, u_1, u_2, q, f, c1, c2, Cx2, Cy2, dt2, tn, b, dx, dt, w, Nx, Ny, exact):
+def advance_vectorized(X, Y ,u, u_1, u_2, q, f, c1, c2, Cx2, Cy2, dt2, tn, b, dx, w, Nx, Ny, exact):
     # boundary conditions:
     u_1[0,:] = u_1[2,:] # u[-1, y] = u[1, y]
     u_1[-1,:] = u_1[-3,:] # u[Nx+1, y] = u[Nx-1, y]
@@ -230,7 +230,7 @@ def advance_vectorized(X, Y ,u, u_1, u_2, q, f, c1, c2, Cx2, Cy2, dt2, tn, b, dx
       
     if exact:
         Err = exact(X,Y,b,tn,w) - u  # Compare numerical soluion with exact solution
-        E = sqrt(dt*dx*dx*sum(Err**2))
+        E = sqrt(dx*dx*sum(Err**2))
     else:
         E = 0
     

@@ -34,7 +34,7 @@ def test_constant(version):
             return zeros((len(x),len(y)))
         
     
-    E, u = solver(Lx,Ly,Nx,Ny,T,dt,c,I,q,V,f,b,version)
+    E, u, dx = solver(Lx,Ly,Nx,Ny,T,dt,c,I,q,V,f,b,version)
     if version == "scalar":
         print u
     else:

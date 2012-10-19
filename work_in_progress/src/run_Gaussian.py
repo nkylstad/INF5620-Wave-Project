@@ -46,6 +46,6 @@ def run_Gaussian(version):
             return zeros((len(x),len(y)))
     
     
-    E = solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, make_plot=True)
+    E, u, dx = solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, make_plot=True)
     
 run_Gaussian("vectorized")

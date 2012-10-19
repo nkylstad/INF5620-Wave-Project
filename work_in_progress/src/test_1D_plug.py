@@ -47,7 +47,7 @@ def test_1D_plug(version):
         else:
             return zeros((len(x), len(y)))
         
-    u = solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, oneD=True)
+    E, u, dx = solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, oneD=True)
     
 
 #test_constant_1D("scalar")    

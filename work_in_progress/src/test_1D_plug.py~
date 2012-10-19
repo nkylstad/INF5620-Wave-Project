@@ -51,4 +51,4 @@ def test_1D_plug(version):
     
 
 #test_constant_1D("scalar")    
-test_1D_plug("scalar")
+test_1D_plug("vectorized")
