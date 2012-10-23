@@ -18,12 +18,9 @@ def test_1D_plug(version):
     
     def q(x,y):
         return ones((len(x),len(y)))
-    
+
     def V(x,y):
-        if version=="scalar":
-            return 0
-        else: 
-            return zeros((len(x), len(y)))
+        return zeros((len(x), len(y)))
     
     if version == "scalar":
         def I(x,y):
@@ -42,10 +39,7 @@ def test_1D_plug(version):
             return Iv
         
     def f(x,y,t):
-        if version=="scalar":
-            return 0
-        else:
-            return zeros((len(x), len(y)))
+        return zeros((len(x), len(y)))
         
     E, u, dx = solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, oneD=True)
     

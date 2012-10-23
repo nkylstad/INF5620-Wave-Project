@@ -15,26 +15,17 @@ def test_constant(version):
     
     def q(x,y):
         return ones((len(x),len(y)))*0.8
-    
+
     def V(x,y):
-        if version == "scalar":
-            return 0
-        else:
-            return zeros((len(x),len(y)))
-        
+        return zeros((len(x),len(y)))
         
     def I(x,y):
         return 1.2
         
-    
     def f(x,y,t):
-        if version == "scalar":
-            return 0
-        else:
-            return zeros((len(x),len(y)))
-        
+        return zeros((len(x),len(y)))
     
-    E, u, dx = solver(Lx,Ly,Nx,Ny,T,dt,c,I,q,V,f,b,version)
+    E, u, dx = solver(Lx,Ly,Nx,Ny,T,dt,c,I,q,V,f,b,version, make_plot=False)
     if version == "scalar":
         print u
     else:

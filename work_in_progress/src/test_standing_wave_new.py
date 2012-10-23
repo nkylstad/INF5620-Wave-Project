@@ -1,7 +1,7 @@
 from wave_solver import solver
 from numpy import *
 import math as m
-import os, glob
+import os, glob, sys
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
     
@@ -16,45 +16,37 @@ b = 0.05
 w = pi
 my = 2
 mx = 2
-version = "vectorized"
+version = sys.argv[1]
 q_const = 0.4
 cx = mx*pi/Lx
 cy = my*pi/Ly
-#dt = (1/c)*(1/(sqrt(1/0.04**2 + 1/0.04**2)))
+#dt = (1/c)*(1/(sqrt(1/0.019**2 + 1/0.019**2)))
 dt = 0.0155
 
 
-def exact_standing_wave(x,y,b,t,w,version="vectorized"):
-    if version=="scalar":
-        return m.exp(-b*t)*m.cos(mx*x*pi/Lx)*m.cos(my*y*pi/Ly)*m.cos(w*t)
-    else:
-        return m.exp(-b*t)*cos(mx*x*pi/Lx)*cos(my*y*pi/Ly)*m.cos(w*t)
+# def exact_standing_wave(x,y,b,t,w,version="vectorized"):
+#     if version=="scalar":
+#         return m.exp(-b*t)*m.cos(mx*x*pi/Lx)*m.cos(my*y*pi/Ly)*m.cos(w*t)
+#     else:
+#         return m.exp(-b*t)*cos(mx*x*pi/Lx)*cos(my*y*pi/Ly)*m.cos(w*t)
 
-        
+def exact_standing_wave(x,y,b,t,w,version="vectorized"):
+    return m.exp(-b*t)*cos(mx*x*pi/Lx)*cos(my*y*pi/Ly)*m.cos(w*t)    
     
 def test_standing_wave(version, w, Nx):
     Ny = Nx
    
     def q(x,y):
         return ones((len(x),len(y))) * q_const
-    
+
     def f(x,y,t):
-        if version=="scalar":
-            return m.exp(-b*t)*m.cos(cx*x)*m.cos(cy*y)*(m.cos(w*t)*(q_const*cx**2 + q_const*cy**2 - w**2) + b*w*m.sin(w*t))
-        else:
-           return exp(-b*t)*cos(cx*x)*cos(cy*y)*(cos(w*t)*(q_const*cx**2 + q_const*cy**2 - w**2) + b*w*sin(w*t))
-        
+       return exp(-b*t)*cos(cx*x)*cos(cy*y)*(cos(w*t)*(q_const*cx**2 + q_const*cy**2 - w**2) + b*w*sin(w*t))
+
     def I(x,y):
-        if version=="scalar":   
-            return m.cos(mx*x*pi/Lx)*m.cos(my*y*pi/Ly)
-        else:
-            return cos(mx*x*pi/Lx)*cos(my*y*pi/Ly)
-        
+        return cos(mx*x*pi/Lx)*cos(my*y*pi/Ly)
+
     def V(x,y):
-        if version=="scalar":
-            return -b*m.cos(mx*x*pi/Lx)*m.cos(my*y*pi/Ly)
-        else:
-            return -b*cos(mx*x*pi/Lx)*cos(my*y*pi/Ly)
+        return -b*cos(mx*x*pi/Lx)*cos(my*y*pi/Ly)
         
     E_list, u, dx = solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, w, exact_standing_wave, standing=True, make_plot=False)
     return E_list, dx
@@ -62,12 +54,13 @@ def test_standing_wave(version, w, Nx):
 
     
 def compute_error(w, Nx):
-    e_list, dx = test_standing_wave("vectorized", w, Nx)
+    e_list, dx = test_standing_wave(version, w, Nx)
     E = sqrt(dx*dx*sum(e_list**2))
     return E, dx
        
 
-Nx_list = [20.0, 40.0, 80.0, 160.0]
+
+Nx_list = [20, 40, 80]
 Error_list=[]
 E_dx_list=[]
 dx_list=[]
@@ -82,11 +75,7 @@ print "dx-list:"
 print dx_list
 print "E/dx**2: "
 print E_dx_list
-print "Error_list:"
-print Error_list
 r = [log(Error_list[i-1]/Error_list[i])/log(dx_list[i-1]/dx_list[i]) for i in range(1, m, 1)]
-noe = [Error_list[i-1]/Error_list[i] for i in range(1,m,1)]
-print noe
 print "Convergence rates: "
 print r
 
