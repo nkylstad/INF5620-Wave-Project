@@ -20,8 +20,8 @@ version = sys.argv[1]
 q_const = 0.4
 cx = mx*pi/Lx
 cy = my*pi/Ly
-#dt = (1/c)*(1/(sqrt(1/0.019**2 + 1/0.019**2)))
-dt = 0.0155
+dt = (1/sqrt(0.4))*(1/(sqrt(1/0.02**2 + 1/0.02**2)))
+
 
 
 # def exact_standing_wave(x,y,b,t,w,version="vectorized"):
@@ -48,7 +48,7 @@ def test_standing_wave(version, w, Nx):
     def V(x,y):
         return -b*cos(mx*x*pi/Lx)*cos(my*y*pi/Ly)
         
-    E_list, u, dx = solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, w, exact_standing_wave, standing=True, make_plot=False)
+    E_list, u, dx = solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, w, exact_standing_wave, make_plot=False)
     return E_list, dx
     
 
@@ -60,7 +60,7 @@ def compute_error(w, Nx):
        
 
 
-Nx_list = [20, 40, 80]
+Nx_list = [20, 40, 80, 160, 200]
 Error_list=[]
 E_dx_list=[]
 dx_list=[]

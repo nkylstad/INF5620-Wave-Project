@@ -1,7 +1,7 @@
 import glob, os
 
-#for i in glob.glob("tmp_*.png"):
-    #os.remove(i)
+# for i in glob.glob("tmp_*.png"):
+#     os.remove(i)
     
 os.remove("initial.txt")
 os.remove("u0.txt")

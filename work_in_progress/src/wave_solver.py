@@ -2,7 +2,7 @@ from numpy import *
 import math, os, subprocess, sys, glob
 from plot_u import plot_u, make_movie
 
-def solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, w=None, exact=None, oneD=False, standing=False, make_plot=True):
+def solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, w=None, exact=None, oneD=False, hill=False, make_plot=True):
     
     dx_x = linspace(0, Lx, Nx+1)
     dy_y = linspace(0, Ly, Ny+1)
@@ -16,8 +16,11 @@ def solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, w=None, exact=None,
     X,Y = meshgrid(x,y)     # Create spatial points
     dx = float(dx_x[1] - dx_x[0])   # Calculate dx
     dy = float(dy_y[1] - dy_y[0])   # Calculate dy
+
+    q = q(X,Y)
+    q_max = amax(q)
    
-    stability_limit = (1/float(c))*(1/sqrt(1/dx**2 + 1/dy**2))  # optimal value for dt
+    stability_limit = (1/float(sqrt(q_max)))*(1/sqrt(1/dx**2 + 1/dy**2))  # optimal value for dt
     if dt <= 0:
         dt = 1*stability_limit
     elif dt > stability_limit:
@@ -32,6 +35,7 @@ def solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, w=None, exact=None,
         
     print "dx: ", dx
     print "dy: ", dy
+
     
     N = int(round(float(T/dt)))
     t = linspace(0,T,N+1)
@@ -83,10 +87,11 @@ def solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, w=None, exact=None,
                 savetxt("u0.txt", u_2)
             else:
                 savetxt("u0.txt", u_2[1:-1,1:-1])
-    q = q(X,Y)
+   
     Vv = V(X,Y)
     fv = f(X,Y,t[0])
     E_list = zeros(N)
+
     # special scheme for the first step:
     if version == "scalar":
         for i in range(0,Nx+1):

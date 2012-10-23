@@ -13,7 +13,7 @@ Ly = 4
 T = 4
 c = 1.1
 b = 0.05
-dt = 0.02
+dt = (1/sqrt(Lx*Ly))*(1/(sqrt(1/0.02**2 + 1/0.02**2)))
 w = pi
 my = 2
 mx = 2
@@ -26,31 +26,22 @@ cy = my*pi/Ly
 
 
 def exact_manufactured_solution(x,y,b,t,w,version="vectorized"):
-    if version=="scalar":
-        return m.exp(-b*t)*m.cos(mx*x*pi/Lx)*m.cos(my*y*pi/Ly)*m.cos(w*t)
-    else:
-        return exp(-b*t)*cos(mx*x*pi/Lx)*cos(my*y*pi/Ly)*cos(w*t)
+    return exp(-b*t)*cos(mx*x*pi/Lx)*cos(my*y*pi/Ly)*cos(w*t)
      
         
     
 def test_manufactured_solution(version, w, Nx):
    
     Ny = Nx
-   
+
     def q(x,y):
-            return x*y
+        return x*y
     
     def f(x,y,t):
-        if version=="scalar":
-            f_val = m.exp(-b*t)*(m.cos(cx*x)*m.cos(cy*y)*(-w**2*m.cos(w*t) + b*w*m.sin(w*t)) + \
-                cx*y*m.cos(cy*y)*m.cos(w*t)*(cx*x*m.cos(cx*x) + m.sin(cy*y)) + \
-                cy*x*m.cos(cx*x)*m.cos(w*t)*(cy*y*m.cos(cy*y) + m.sin(cx*x)))
-            return f_val
-        else:
-            f_val = exp(-b*t)*(cos(cx*x)*cos(cy*y)*(-w**2*cos(w*t) + b*w*sin(w*t)) + \
-                cx*y*cos(cy*y)*cos(w*t)*(cx*x*cos(cx*x) + sin(cy*y)) + \
-                cy*x*cos(cx*x)*cos(w*t)*(cy*y*cos(cy*y) + sin(cx*x)))
-            return f_val
+        f_val = exp(-b*t)*(cos(cx*x)*cos(cy*y)*(-w**2*cos(w*t) + b*w*sin(w*t)) + \
+            cx*y*cos(cy*y)*cos(w*t)*(cx*x*cos(cx*x) + sin(cy*y)) + \
+            cy*x*cos(cx*x)*cos(w*t)*(cy*y*cos(cy*y) + sin(cx*x)))
+        return f_val
         
     def I(x,y):
         if version=="scalar":   
@@ -59,12 +50,36 @@ def test_manufactured_solution(version, w, Nx):
             return cos(cx*x)*cos(cy*y)
         
     def V(x,y):
-        if version=="scalar":
-            return -b*m.cos(cx*x)*m.cos(cy*y)
-        else:
-            return -b*cos(cx*x)*cos(cy*y)
+        return -b*cos(cx*x)*cos(cy*y)
+   
+    # def q(x,y):
+    #         return x*y
+    
+    # def f(x,y,t):
+    #     if version=="scalar":
+    #         f_val = m.exp(-b*t)*(m.cos(cx*x)*m.cos(cy*y)*(-w**2*m.cos(w*t) + b*w*m.sin(w*t)) + \
+    #             cx*y*m.cos(cy*y)*m.cos(w*t)*(cx*x*m.cos(cx*x) + m.sin(cy*y)) + \
+    #             cy*x*m.cos(cx*x)*m.cos(w*t)*(cy*y*m.cos(cy*y) + m.sin(cx*x)))
+    #         return f_val
+    #     else:
+    #         f_val = exp(-b*t)*(cos(cx*x)*cos(cy*y)*(-w**2*cos(w*t) + b*w*sin(w*t)) + \
+    #             cx*y*cos(cy*y)*cos(w*t)*(cx*x*cos(cx*x) + sin(cy*y)) + \
+    #             cy*x*cos(cx*x)*cos(w*t)*(cy*y*cos(cy*y) + sin(cx*x)))
+    #         return f_val
         
-    E_list, u, dx = solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, w, exact_manufactured_solution, standing=False, make_plot=False)
+    # def I(x,y):
+    #     if version=="scalar":   
+    #         return m.cos(cx*x)*m.cos(cy*y)
+    #     else:
+    #         return cos(cx*x)*cos(cy*y)
+        
+    # def V(x,y):
+    #     if version=="scalar":
+    #         return -b*m.cos(cx*x)*m.cos(cy*y)
+    #     else:
+    #         return -b*cos(cx*x)*cos(cy*y)
+        
+    E_list, u, dx = solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, w, exact_manufactured_solution, hill=False, make_plot=False)
     return E_list, dx
     
     
@@ -74,7 +89,7 @@ def compute_error(w, Nx):
     return E, dx
        
 
-Nx_list = [20.0, 40.0, 60.0, 80.0, 100.0]
+Nx_list = [20, 40, 80, 160]
 Error_list=[]
 dx_list = []
 E_dx_list = []
