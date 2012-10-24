@@ -16,23 +16,21 @@ b = 0.05
 w = pi
 my = 2
 mx = 2
-version = sys.argv[1]
+try:
+    version = sys.argv[1]
+except:
+    print "Please provide version (scalar or vectorized) on the command line."
+    sys.exit(1)
 q_const = 0.4
 cx = mx*pi/Lx
 cy = my*pi/Ly
 dt = (1/sqrt(0.4))*(1/(sqrt(1/0.02**2 + 1/0.02**2)))
 
 
-
-# def exact_standing_wave(x,y,b,t,w,version="vectorized"):
-#     if version=="scalar":
-#         return m.exp(-b*t)*m.cos(mx*x*pi/Lx)*m.cos(my*y*pi/Ly)*m.cos(w*t)
-#     else:
-#         return m.exp(-b*t)*cos(mx*x*pi/Lx)*cos(my*y*pi/Ly)*m.cos(w*t)
-
 def exact_standing_wave(x,y,b,t,w,version="vectorized"):
     return m.exp(-b*t)*cos(mx*x*pi/Lx)*cos(my*y*pi/Ly)*m.cos(w*t)    
     
+
 def test_standing_wave(version, w, Nx):
     Ny = Nx
    
@@ -48,10 +46,9 @@ def test_standing_wave(version, w, Nx):
     def V(x,y):
         return -b*cos(mx*x*pi/Lx)*cos(my*y*pi/Ly)
         
-    E_list, u, dx = solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, w, exact_standing_wave, make_plot=False)
+    E_list, u, dx = solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, w=w, exact=exact_standing_wave, make_plot=False)
     return E_list, dx
     
-
     
 def compute_error(w, Nx):
     e_list, dx = test_standing_wave(version, w, Nx)
@@ -59,8 +56,7 @@ def compute_error(w, Nx):
     return E, dx
        
 
-
-Nx_list = [20, 40, 80, 160, 200]
+Nx_list = [20, 40, 80, 160]
 Error_list=[]
 E_dx_list=[]
 dx_list=[]
@@ -78,56 +74,3 @@ print E_dx_list
 r = [log(Error_list[i-1]/Error_list[i])/log(dx_list[i-1]/dx_list[i]) for i in range(1, m, 1)]
 print "Convergence rates: "
 print r
-
-    
-    
-def plot_exact():
-    #Fy = 0.8
-    #Fx = 0.8
-    #Ft = 1/float(c) *1/sqrt(1/Fx**2 + 1/Fy**2)
-    #dx = Fx*h
-    #dy = Fy*h
-    #dt = Ft*h
-    #dt = (1/float(c))*(1/sqrt(1/dx**2 + 1/dy**2))
-    N = int(round(float(T/dt)))
-    x = linspace(0,Lx,Nx+1)
-    y = linspace(0,Ly,Ny+1)
-    dx = x[1] - x[0]
-    dy = y[1] - y[0]
-    X,Y = meshgrid(x,y)
-    t = linspace(0,T,N+1)
-    file = open("initial.txt",'w')
-    file.write("Nx="+str(Nx)+"\n")
-    file.write("Lx="+str(Lx)+"\n")
-    file.write("Ny="+str(Ny)+"\n")
-    file.write("Ly="+str(Ly)+"\n")
-    file.write("T="+str(T)+"\n")
-    file.write("N="+str(N)+"\n")
-    file.close()
-    U_e = zeros((Nx+1,Ny+1))
-    #fig = plt.figure(111)
-    #fig.clf()
-    #ax = fig.gca(projection='3d')
-    #for i in range(Nx+1):
-        #for j in range(Ny+1):
-            #U_e[i,j] = exact_standing_wave(x[i], y[j], b, t[0])
-    U_e0 = exact_standing_wave(X,Y,b,t[0],w)
-    
-    #plt.savefig("tmp_%.4d.png" % 0)
-    #ax.cla()
-    savetxt("u0.txt", U_e0)
-    for n in range(1,N+1):
-        #    for i in range(Nx+1):
-        #        for j in range(Ny+1):
-        #            U_e[i,j] = exact_standing_wave(x[i], y[j], b, t[n])
-        #ax.plot_surface(X,Y,U_e)
-        #plt.savefig("tmp_%.4d.png" % n)
-        #ax.cla()
-        #print "Saved fig %g out of %g" % (n, N)
-        U_e = exact_standing_wave(X,Y,b,t[n],w)
-        #print "t=%g" %n, U_e
-        #print U_e
-        savetxt("texttmp%.4d.txt"%n, U_e)
-
-    
-#plot_exact()

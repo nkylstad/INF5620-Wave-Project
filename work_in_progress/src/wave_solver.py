@@ -2,7 +2,7 @@ from numpy import *
 import math, os, subprocess, sys, glob
 from plot_u import plot_u, make_movie
 
-def solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, w=None, exact=None, oneD=False, hill=False, make_plot=True):
+def solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, B=None, w=None, exact=None, oneD=False, make_plot=True):
     
     dx_x = linspace(0, Lx, Nx+1)
     dy_y = linspace(0, Ly, Ny+1)
@@ -19,6 +19,15 @@ def solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, w=None, exact=None,
 
     q = q(X,Y)
     q_max = amax(q)
+
+    if make_plot:
+        if B:
+            B = B(X,Y)
+            if version == "scalar":
+                savetxt("hill.txt", B)
+            else:
+                savetxt("hill.txt", B[1:-1,1:-1])
+
    
     stability_limit = (1/float(sqrt(q_max)))*(1/sqrt(1/dx**2 + 1/dy**2))  # optimal value for dt
     if dt <= 0:

@@ -22,34 +22,20 @@ def test_1D_plug(version):
 
     def V(x,y):
         return zeros((len(x), len(y)))
-
+    
     if version == "scalar":
         def I(x,y):
             return 0 if abs(x-xc) > sigma else 2
     else: 
         def I(xv, yv):
-            return exp(-0.5*(xv/sigma)**2)
-            # Iv = zeros((len(xv), len(yv)))
-            # for i in range(len(xv)):
-            #     for j in range(len(yv)):
-            #         Iv[i,j] = exp(-0.5*((xv[i,j]-Lx/2.0)/(sigma))**2)     
-            # return Iv
-    
-    # if version == "scalar":
-    #     def I(x,y):
-    #         return 0 if abs(x-xc) > sigma else 2
-    # else: 
-    #     def I(xv, yv):
-    #         Iv = zeros((len(xv), len(yv)))
-    #         for i in range(len(xv)):
-    #             for j in range(len(yv)):
-    #                 if abs(xv[j, i] - xc) > sigma:
-    #                     Iv[i, j] = 0
-    #                 else:
-    #                     Iv[i, j] = 2
-    #                #print "iv:",Iv[i, j]
-                        
-    #         return Iv
+            Iv = zeros((len(xv), len(yv)))
+            for i in range(len(xv)):
+                for j in range(len(yv)):
+                    if abs(xv[j, i] - xc) > sigma:
+                        Iv[i, j] = 0
+                    else:
+                        Iv[i, j] = 2
+            return Iv
         
     def f(x,y,t):
         return zeros((len(x), len(y)))
