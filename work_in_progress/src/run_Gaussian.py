@@ -4,9 +4,9 @@ import math as m
 import os, glob
 
 dt = -1
-Nx = 200
-Ny = 200
-T = 5
+Nx = 100
+Ny = 100
+T = 3
 Lx = 40
 Ly = 40
 c = 1.1
@@ -47,4 +47,27 @@ def run_Gaussian(version):
     
     E, u, dx = solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, B=B, make_plot=True)
     
-run_Gaussian("vectorized")
+#run_Gaussian("vectorized")
+
+def run_Gaussian_flathill(version):
+    def I(x,y):
+        """Gaussian peak at (0, Ly/2)."""
+        # return 2*exp(-0.5*((x-Lx/2.0)/(sigma))**2 - 0.5*((y-Ly/2.0)/(sigma))**2)
+        return height*exp(-0.5*((x)/(sigma))**2 - 0.5*((y-Ly/2.0)/(sigma))**2)
+
+    def B(x,y):
+        return x-H0
+
+    def V(x,y):
+        return ones((len(x),len(y)))*factor
+            
+    
+    def q(x,y):
+        return g*(H0-B(x,y))
+
+    def f(x,y,t):
+        return zeros((len(x),len(y)))
+    
+    E, u, dx = solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, B=B, make_plot=True)
+
+run_Gaussian_flathill("vectorized")
