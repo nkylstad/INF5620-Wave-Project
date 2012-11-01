@@ -1,7 +1,6 @@
 from numpy import *
 import math as m
-#import enthought
-from enthought.mayavi import mlab
+from mayavi import mlab
 from scitools.easyviz import *
 
 f = open("initial.txt", 'r')
