@@ -12,7 +12,7 @@ b = 0.1
 sigma = 0.8
 
 def test_constant(version):
-    
+
     def q(x,y):
         return ones((len(x),len(y)))*0.8
 

@@ -54,7 +54,7 @@ def test_manufactured_solution(version, w, Nx):
     def V(x,y):
         return -b*cos(cx*x)*cos(cy*y)
         
-    E_list, u, dx = solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, w, exact_manufactured_solution, hill=False, make_plot=False)
+    E_list, u, dx = solver(Lx, Ly, Nx, Ny, T, dt, c, I, q, V, f, b, version, w=w, exact=exact_manufactured_solution, make_plot=False)
     return E_list, dx
     
     
@@ -64,7 +64,7 @@ def compute_error(w, Nx):
     return E, dx
        
 
-Nx_list = [20, 40, 80, 160]
+Nx_list = [20, 40, 80]
 Error_list=[]
 dx_list = []
 E_dx_list = []
