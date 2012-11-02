@@ -125,11 +125,11 @@ We address the standard two-dimensional linear wave equation, with damping,
 \frac{\partial^2 u}{\partial t^2} + b\frac{\partial u}{\partial t} &= \frac{\partial}{\partial x} \left( q(x,y) \frac{\partial u}{\partial x} \right) + \frac{\partial}{\partial y} \left( q(x,y) \frac{\partial u}{\partial y} \right) + f(x,y,t), \label{eq:wave}\\
 u(x,y,0)  &= I(x,y),                         \label{initial:values}\\
 u_t(x,u,0) &= V(x,y),                         \label{initial:values:t}\\
-\frac{\partial u}{\partial n} &= 0
+\frac{\partial u}{\partial n} &= 0,
 \end{align}
 where $b$, $q$, $I$ and $V$ are prescribed parameters, and $u(x,y,t)$ is
 the unknown function to be estimated. The equation will be evaluated on a 
-a rectangular spatial domain $\left[0, L_x \right] \times \left[0, L_y \right]$.
+rectangular spatial domain $\left[0, L_x \right] \times \left[0, L_y \right]$.
 
 % Section with single-line equation and a bullet list.
 

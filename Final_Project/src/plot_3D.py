@@ -1,6 +1,7 @@
 from numpy import *
 import math as m
 from mayavi import mlab
+from mayavi.api import OffScreenEngine
 from scitools.easyviz import *
 
 f = open("initial.txt", 'r')
@@ -52,10 +53,10 @@ for line in f:
 f.close()
 
 print "Plotting image 1 of %g" % N
+mlab.options.offscreen = True
 s = mlab.mesh(X, Y, u0,colormap='winter', opacity=0.8)  # color=(0.1,0.7,0.8)
 hill_p = mlab.mesh(X,Y,hill, colormap='gray', opacity=0.8)
 mlab.title("t=%.4f" % t[0], color=(1,1,1),size=0.5)
-mlab.options.offscreen = True
 mlab.savefig("u%.3d.png" % 0)
 mlab.clf()
 
@@ -71,15 +72,24 @@ for n in range(1,N):
             i += 1
         f.close()
         print "Plotting image %g of %g" % (n+1, N)
+        mlab.options.offscreen = True
         s = mlab.mesh(X,Y,u,colormap='winter', opacity=0.8)
         hill_p = mlab.mesh(X,Y,hill, colormap='gray', opacity=0.7)
         mlab.title("t=%.4f" % t[n], color=(1,1,1),size=0.5)
-        mlab.options.offscreen = True
         mlab.savefig("u%.4d.png" % n)
         mlab.clf()
-    
-import os, glob
 
 movie("u*.png", fps=10)
-for i in glob.glob("u*.png"):
-    os.remove(i)
+
+import glob, os
+
+os.remove("initial.txt")
+os.remove("u0.txt")
+os.remove("hill.txt")
+os.remove("H0.txt")
+for i in glob.glob("texttmp*.txt"):
+   os.remove(i)
+for j in glob.glob("u*.png"):
+   os.remove(j)
+
+
