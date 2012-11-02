@@ -6,7 +6,7 @@ import os, glob
 dt = -1
 Nx = 100
 Ny = 100
-T = 3
+T = 8
 Lx = 40
 Ly = 40
 c = 1.1
